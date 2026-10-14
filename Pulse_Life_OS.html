@@ -1,0 +1,2124 @@
+
+    <!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse Life OS</title>
+    
+    <!-- Ide illeszd be a beépített stílusokat: -->
+    <style>
+      body { 
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+          background-color: #f3f4f6; 
+          color: #1f2937; 
+          margin: 0; 
+          padding: 1rem; 
+      }
+      .container { 
+          max-width: 600px; 
+          margin: 0 auto; 
+          background: #ffffff; 
+          padding: 1.5rem; 
+          border-radius: 1rem; 
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+      }
+      button { 
+          background-color: #2563eb; 
+          color: white; 
+          border: none; 
+          padding: 0.5rem 1rem; 
+          border-radius: 0.5rem; 
+          cursor: pointer; 
+          font-weight: 600; 
+      }
+      button:hover { 
+          background-color: #1d4ed8; 
+      }
+      input, select { 
+          width: 100%; 
+          padding: 0.5rem; 
+          margin-top: 0.25rem; 
+          margin-bottom: 1rem; 
+          border: 1px solid #d1d5db; 
+          border-radius: 0.375rem; 
+          box-sizing: border-box; 
+      }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex justify-center selection:bg-emerald-500 selection:text-slate-950">
+
+    <!-- Mobile App Shell Container -->
+    <div class="w-full max-w-md min-h-screen bg-slate-900/70 sm:border-x border-slate-800/80 flex flex-col relative pb-24 shadow-2xl">
+
+        <!-- STICKY TOP HEADER -->
+        <header class="sticky top-0 z-30 backdrop-blur-xl bg-slate-950/85 border-b border-slate-800/80 px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                            Pulse Life OS
+                        </h1>
+                    </div>
+                    <p id="headerDateLabel" class="text-[11px] font-medium text-slate-400 mt-0.5">Betöltés...</p>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <input type="date" id="activeDateInput" aria-label="Dátum választása" class="bg-slate-900 border border-slate-700/80 text-xs font-semibold rounded-xl px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-emerald-500" />
+                    <button onclick="openSettingsModal()" aria-label="Beállítások és Mentés" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white active:scale-95 transition" title="Mentés és Beállítások">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN SCROLLABLE CONTENT -->
+        <main class="flex-1 px-4 pt-4 space-y-5">
+
+            <!-- ==================== 1. TAB: MA (TODAY DASHBOARD) ==================== -->
+            <section id="tab-today" class="space-y-4">
+                <!-- Napi Fizikai Aktivitás, Kutyaséta & Erősítő Edzésterv -->
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 shadow-sm space-y-3.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-400"></i>
+                            Napi Mozgás & Erősítés Tervező
+                        </span>
+                        <span id="activityBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/30">
+                            Aktív
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setDayActivity('rest')" id="act-rest" class="py-2 px-2 rounded-2xl text-xs font-bold border transition active:scale-95">
+                            🧘 Pihenőnap
+                        </button>
+                        <button onclick="setDayActivity('light')" id="act-light" class="py-2 px-2 rounded-2xl text-xs font-bold border transition active:scale-95">
+                            🚶 Könnyű / Séta
+                        </button>
+                        <button onclick="setDayActivity('intense')" id="act-intense" class="py-2 px-2 rounded-2xl text-xs font-bold border transition active:scale-95">
+                            🏋️ Erősítés / Intenzív
+                        </button>
+                    </div>
+                    <p id="activityTargetHint" class="text-[11px] text-slate-400 leading-relaxed"></p>
+
+                    <div class="pt-1 border-t border-slate-800/80 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-200">Mai Tervezett & Elvégzett Mozgások</span>
+                            <button onclick="toggleStrengthPlanSelector()" class="text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1">
+                                <span>💪 Erősítő Terv</span>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button onclick="quickAddWorkout('dog')" class="py-2 px-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-[11px] font-bold text-slate-200 flex items-center justify-center gap-1 active:scale-95 transition">
+                                🐕 +Kutyaséta
+                            </button>
+                            <button onclick="quickAddWorkout('walk')" class="py-2 px-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-[11px] font-bold text-slate-200 flex items-center justify-center gap-1 active:scale-95 transition">
+                                🚶 +Séta
+                            </button>
+                            <button onclick="openInputModal('customWorkout')" class="py-2 px-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-[11px] font-bold text-emerald-400 flex items-center justify-center gap-1 active:scale-95 transition">
+                                ➕ Egyéni mozgás
+                            </button>
+                        </div>
+
+                        <div id="strengthPlanSelector" class="hidden bg-slate-950 border border-amber-500/40 rounded-2xl p-3 space-y-2.5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-extrabold text-amber-300">💪 Válassz Erősítő Edzéstervet mára:</span>
+                                <button onclick="toggleStrengthPlanSelector()" class="text-xs text-slate-400 hover:text-white">✕</button>
+                            </div>
+                            <div id="strengthTemplatesList" class="space-y-1.5"></div>
+                        </div>
+
+                        <div id="dailyWorkoutsList" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- Makró Összesítő Kártya Haladási Sávokkal & Fehérje Cél Kipipálással -->
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm font-bold text-white flex items-center gap-1.5">
+                            <i data-lucide="utensils" class="w-4 h-4 text-emerald-400"></i>
+                            Napi Energia & Makrók
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <span id="proteinGoalBadge" class="hidden text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                ✓ Fehérjecél teljesítve!
+                            </span>
+                            <button onclick="switchTab('nutrition')" class="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
+                                <span>+ Étkezés</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div class="bg-slate-950/90 p-3 rounded-2xl border border-slate-800/80 space-y-1.5">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-[11px] font-semibold text-slate-400">Kalória</span>
+                                <span class="text-xs font-extrabold text-white"><span id="dashKcal">0</span> <span id="dashKcalTarget" class="text-[10px] font-normal text-slate-500">/ 2250 kcal</span></span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="barKcal" class="bg-white h-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/90 p-3 rounded-2xl border border-slate-800/80 space-y-1.5">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-[11px] font-semibold text-emerald-400">Fehérje</span>
+                                <span class="text-xs font-extrabold text-emerald-300"><span id="dashPro">0g</span> <span id="dashProTarget" class="text-[10px] font-normal text-slate-500">/ 165g</span></span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="barPro" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/90 p-3 rounded-2xl border border-slate-800/80 space-y-1.5">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-[11px] font-semibold text-cyan-400">Szénhidrát</span>
+                                <span class="text-xs font-extrabold text-cyan-300"><span id="dashCarb">0g</span> <span id="dashCarbTarget" class="text-[10px] font-normal text-slate-500">/ 230g</span></span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="barCarb" class="bg-cyan-400 h-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/90 p-3 rounded-2xl border border-slate-800/80 space-y-1.5">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-[11px] font-semibold text-amber-400">Zsír</span>
+                                <span class="text-xs font-extrabold text-amber-300"><span id="dashFat">0g</span> <span id="dashFatTarget" class="text-[10px] font-normal text-slate-500">/ 70g</span></span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="barFat" class="bg-amber-400 h-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vízfogyasztás Poharanként -->
+                <div id="waterCard" class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 transition-all shadow-sm space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-lg">💧</div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-bold text-white">Vízkövetés poharanként</h3>
+                                    <span id="waterDonePill" class="hidden text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">✓ Kész!</span>
+                                </div>
+                                <p id="waterSubtext" class="text-xs text-slate-400 mt-0.5">0 / 8 pohár</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="changeWater(-1)" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-200 font-bold hover:bg-slate-700 active:scale-90 transition">-</button>
+                            <button onclick="changeWater(1)" class="px-3 h-8 rounded-xl bg-cyan-500 text-slate-950 font-extrabold text-xs hover:bg-cyan-400 active:scale-95 transition">+1 pohár</button>
+                        </div>
+                    </div>
+                    <div id="waterGlassesRow" class="grid grid-cols-8 gap-1.5"></div>
+                    <div class="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-slate-400 font-medium">Napi alapcél:</span>
+                            <button onclick="adjustWaterBaseGoal(-1)" class="w-6 h-6 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 font-bold">-</button>
+                            <span id="waterBaseGoalLabel" class="font-extrabold text-cyan-300 px-1">8 pohár</span>
+                            <button onclick="adjustWaterBaseGoal(1)" class="w-6 h-6 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 font-bold">+</button>
+                        </div>
+                        <button onclick="toggleWaterAutoBonus()" id="waterAutoBonusBtn" class="px-2.5 py-1 rounded-xl border text-[10px] font-bold transition">⚡ Edzés-pótlék: BE</button>
+                    </div>
+                </div>
+
+                <!-- Napi Alapszokások -->
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                                Napi Alapszokások & Jegyzetek
+                            </h3>
+                            <p class="text-[11px] text-slate-400">Olvasónapló, könyvek és szokások</p>
+                        </div>
+                        <button onclick="openInputModal('habit')" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-slate-800 text-emerald-400 hover:bg-slate-700">+ Új szokás</button>
+                    </div>
+                    <div id="habitsList" class="space-y-2.5"></div>
+                </div>
+
+                <!-- Napi Állapotfelmérés -->
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3.5 shadow-sm">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                            <i data-lucide="sliders" class="w-4 h-4 text-purple-400"></i>
+                            Napi Állapotfelmérés (Check-in)
+                        </h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800/70">
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="font-semibold text-slate-300">⚡ Energiaszint</span>
+                                <span id="valEnergy" class="font-extrabold text-emerald-400">7 / 10</span>
+                            </div>
+                            <input type="range" min="1" max="10" id="sliderEnergy" oninput="updateCheckinSlider('energy', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
+                        </div>
+                        <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800/70">
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="font-semibold text-slate-300">🧠 Szellemi Fókusz</span>
+                                <span id="valFocus" class="font-extrabold text-cyan-400">7 / 10</span>
+                            </div>
+                            <input type="range" min="1" max="10" id="sliderFocus" oninput="updateCheckinSlider('focus', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
+                        </div>
+                        <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800/70">
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="font-semibold text-slate-300">😴 Alvásminőség</span>
+                                <span id="valSleep" class="font-extrabold text-purple-400">7 / 10</span>
+                            </div>
+                            <input type="range" min="1" max="10" id="sliderSleep" oninput="updateCheckinSlider('sleep', this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
+                        </div>
+                        <input type="text" id="dailyNoteInput" oninput="updateDailyNote(this.value)" placeholder="Rövid napi megjegyzés..." class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500" />
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== 2. TAB: ÉTKEZÉS & RECEPTEK ==================== -->
+            <section id="tab-nutrition" class="hidden space-y-4">
+                <!-- Aktív Többnapos Ebéd Banner -->
+                <div id="activeBatchBanner" class="hidden bg-gradient-to-r from-amber-950/80 via-slate-900 to-emerald-950/60 border border-amber-500/50 rounded-3xl p-4 space-y-2.5 shadow-md">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                            🍲 Megfőzött többnapos ebéd (4 főre)
+                        </span>
+                        <span id="batchDaysBadge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-500/30"></span>
+                    </div>
+                    <div id="activeBatchContent" class="space-y-2"></div>
+                </div>
+
+                <!-- 1-Tap Rutin Kaják (Szerkeszthetők + Schiacciata Nagy/Kicsi méret) -->
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3.5 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                            ⚡ Saját Rutin Étkezések (Szerkeszthető)
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-semibold">1-Tap Naplózás</span>
+                    </div>
+
+                    <!-- Fix Reggeli -->
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs font-extrabold text-emerald-300" id="presetTitleBf">🥣 Reggeli Quark & Joghurt Tál</div>
+                            <button onclick="openEditPresetModal('bf')" class="text-[10px] text-slate-400 hover:text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800">⚙️ Szerkesztés</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <button onclick="quickLogPreset('bf_banana')" class="py-2 px-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-left transition active:scale-95">
+                                <div class="text-xs font-bold text-white">🍌 Banános verzió</div>
+                                <div id="presetBfBananaSub" class="text-[10px] text-emerald-400 font-semibold">510 kcal • 36g F</div>
+                            </button>
+                            <button onclick="quickLogPreset('bf_sweetener')" class="py-2 px-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 text-left transition active:scale-95">
+                                <div class="text-xs font-bold text-white">🍯 Édesítős / Mézes</div>
+                                <div id="presetBfSweetSub" class="text-[10px] text-cyan-400 font-semibold">425 kcal • 35g F</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Schiacciata Vacsora (Nagy / Kicsi méret kapcsolóval) -->
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs font-extrabold text-amber-300">🥪 Esti Schiacciata Szendvicsek</div>
+                            <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                                <button onclick="setSchiaccciataSize('large')" id="schSizeLarge" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500 text-slate-950 transition">Nagy</button>
+                                <button onclick="setSchiaccciataSize('small')" id="schSizeSmall" class="px-2 py-0.5 rounded-lg text-[10px] font-bold text-slate-400 transition">Kicsi (Feles)</button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5" id="schiaccciataPresetsContainer"></div>
+                    </div>
+                </div>
+
+                <!-- KÖZPONTI RECEPTKÖNYV & ALAPANYAG-ADATBÁZIS -->
+                <div class="bg-slate-900 border border-emerald-500/30 rounded-3xl p-4 space-y-3.5 shadow-sm">
+                    <div class="flex items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-extrabold text-white flex items-center gap-1.5">
+                                📖 Központi Receptkönyv
+                            </h3>
+                            <p class="text-[11px] text-slate-400">Csillagozd be (⭐), amit fent a kiemelt reggeli/vacsora gomboknál látni szeretnél!</p>
+                        </div>
+                        <div class="flex gap-1.5">
+                            <button onclick="toggleIngredientDbPanel()" class="text-[11px] font-bold px-2.5 py-1.5 rounded-xl bg-slate-800 text-cyan-400 hover:bg-slate-700 transition">
+                                🥕 Alapanyagok
+                            </button>
+                            <button onclick="openRecipeBookModal(null)" class="text-[11px] font-bold px-2.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition">
+                                + Új Recept
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Kategória szűrő -->
+                    <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1" id="recipeCategoryFilterRow">
+                        <button onclick="setRecipeBookCategory('all')" id="rcat-all" class="px-3 py-1 rounded-xl text-[11px] font-bold bg-emerald-500 text-slate-950 whitespace-nowrap">Összes</button>
+                        <button onclick="setRecipeBookCategory('breakfast')" id="rcat-breakfast" class="px-3 py-1 rounded-xl text-[11px] font-bold bg-slate-950 text-slate-400 border border-slate-800 whitespace-nowrap">🥣 Reggeli</button>
+                        <button onclick="setRecipeBookCategory('lunch')" id="rcat-lunch" class="px-3 py-1 rounded-xl text-[11px] font-bold bg-slate-950 text-slate-400 border border-slate-800 whitespace-nowrap">🍲 Ebéd / Főétel</button>
+                        <button onclick="setRecipeBookCategory('sandwich')" id="rcat-sandwich" class="px-3 py-1 rounded-xl text-[11px] font-bold bg-slate-950 text-slate-400 border border-slate-800 whitespace-nowrap">🥪 Szendvics / Vacsora</button>
+                        <button onclick="setRecipeBookCategory('snack')" id="rcat-snack" class="px-3 py-1 rounded-xl text-[11px] font-bold bg-slate-950 text-slate-400 border border-slate-800 whitespace-nowrap">🍏 Nasi</button>
+                    </div>
+
+                    <!-- Receptek listája -->
+                    <div id="recipeBookListContainer" class="space-y-2 max-h-96 overflow-y-auto no-scrollbar pr-0.5"></div>
+
+                    <!-- Szerkeszthető Alapanyag-adatbázis Panel (Összecsukható) -->
+                    <div id="ingredientDbPanel" class="hidden pt-3 border-t border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-xs font-extrabold text-cyan-300">🥕 Alapanyag-adatbázis (értékek 100g-ra)</h4>
+                                <p class="text-[10px] text-slate-400">Ha módosítasz egy alapanyagot, minden recept makrója automatikusan frissül!</p>
+                            </div>
+                            <button onclick="openIngredientModal(null)" class="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-cyan-500 text-slate-950">+ Új Alapanyag</button>
+                        </div>
+                        <div id="ingredientDbList" class="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar"></div>
+                    </div>
+                </div>
+
+                <!-- AI Séf (1 napos vagy többnapos opcióval + Részletes Főzési Recept Kártya) -->
+                <div class="bg-gradient-to-br from-emerald-950/70 via-slate-900 to-teal-950/50 border border-emerald-700/50 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-extrabold text-emerald-300 flex items-center gap-1.5">
+                                👨‍🍳 AI Séf: Recept, Főzés & Bevásárlólista
+                            </h3>
+                            <p class="text-[11px] text-slate-300">Kérj 1 napos vagy többnapos menüt részletes főzési lépésekkel!</p>
+                        </div>
+                        <button onclick="generateAIMealPlan()" class="px-3 py-2 rounded-2xl bg-emerald-500 text-slate-950 font-extrabold text-xs hover:bg-emerald-400 active:scale-95 transition shadow-md shadow-emerald-500/20">
+                            Napi Menü
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 space-y-2.5">
+                        <div class="text-[11px] font-bold text-slate-300">Mit főzzünk?</div>
+                        <div class="flex gap-1.5">
+                            <input type="text" id="aiRecipePromptInput" placeholder="Pl. zöldborsófőzelék, pulykaragu, lasagne..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+                            <select id="aiRecipeDaysSelect" class="bg-slate-900 border border-slate-800 rounded-xl px-2 py-2 text-xs font-bold text-emerald-300">
+                                <option value="1">1 napra (4 adag)</option>
+                                <option value="2">2 napra (8 adag)</option>
+                                <option value="3" selected>3 napra (12 adag)</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="generateAIFamilyRecipe()" class="flex-1 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-extrabold text-xs transition active:scale-95">
+                                ✨ Recept + Bevásárlólista
+                            </button>
+                            <button onclick="generateDetailedCookingGuide()" class="py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-extrabold text-xs transition active:scale-95" title="Részletes főzési útmutató lépésről lépésre">
+                                📖 Főzési Recept
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="aiMealSuggestionBox" class="hidden bg-slate-950/90 border border-slate-800 rounded-2xl p-3.5 text-xs text-slate-200 space-y-2.5 leading-relaxed"></div>
+                </div>
+
+                <!-- Okos Napi Menü Ellenőr & Egészséges Nasi / Schiacciata Javaslat -->
+                <div id="smartNutritionSuggestionCard" class="bg-slate-900 border border-slate-800 rounded-3xl p-4 space-y-2.5 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                            💡 Okos Makró-Ellenőr & Javaslatok
+                        </span>
+                        <span id="smartStatusPill" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">Folyamatban</span>
+                    </div>
+                    <div id="smartSuggestionBody" class="text-xs text-slate-300 leading-relaxed">
+                        Add hozzá a mai ételeidet a naplóhoz, és a rendszer itt jelzi, ha szükséges még egészséges nasi vagy nagyobb adag schiacciata!
+                    </div>
+                </div>
+
+                <!-- Pipálható Bevásárlólista -->
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-1.5">🛒 Pipálható Bevásárlólista</h3>
+                            <p class="text-[11px] text-slate-400">A receptek hozzávalói automatikusan ide kerülnek</p>
+                        </div>
+                        <button onclick="clearCheckedShoppingItems()" class="text-[11px] font-bold text-rose-400 hover:underline">Kipipáltak törlése</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="newShopItemInput" placeholder="Új tétel..." class="flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" />
+                        <button onclick="addManualShoppingItem()" class="px-4 py-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-extrabold text-xs">+ Lista</button>
+                    </div>
+                    <div id="shoppingListContainer" class="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar"></div>
+                </div>
+
+                <!-- Mai Étkezési Napló (Kipipálás időponttal, fehérjecél automatikus pipával, szerkesztéssel) -->
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white">Mai Étkezési Napló & Evés Időpontok</h3>
+                        <button onclick="openInputModal('customFoodLog')" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-slate-800 text-emerald-400">+ Egyedi étel</button>
+                    </div>
+                    <div id="dailyFoodLogList" class="space-y-2"></div>
+                </div>
+            </section>
+
+            <!-- ==================== 3. TAB: MIKROTÁPANYAGOK ==================== -->
+            <section id="tab-micros" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Étrend-kiegészítők & Készletfigyelő</h3>
+                            <p class="text-[11px] text-slate-400">Pipáld ki a bevett adagot.</p>
+                        </div>
+                        <button onclick="toggleNewSuppModal()" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-slate-800 text-emerald-400">+ Új Kiegészítő</button>
+                    </div>
+                    <div id="newSuppBox" class="hidden bg-slate-950 border border-emerald-600/50 rounded-2xl p-3.5 space-y-3">
+                        <div class="flex justify-between items-center"><span class="text-xs font-extrabold text-emerald-400">Új Kiegészítő</span><button onclick="toggleNewSuppModal()" class="text-xs text-slate-400">✕</button></div>
+                        <input type="text" id="suppName" placeholder="Név" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-white" />
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="suppStock" value="60" placeholder="Készlet" class="bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-bold" />
+                            <select id="suppTiming" class="bg-slate-900 border border-slate-800 rounded-xl px-2 py-1.5 text-xs text-slate-200">
+                                <option value="Reggel">Reggel</option>
+                                <option value="Este">Este</option>
+                            </select>
+                        </div>
+                        <button onclick="saveNewSupplement()" class="w-full py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs">Mentés</button>
+                    </div>
+                    <div id="supplementsList" class="space-y-2.5"></div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <h3 class="text-sm font-bold text-white">Összesített Mikrotápanyag Riport</h3>
+                    <div id="micronutrientReportBars" class="space-y-3 pt-1"></div>
+                </div>
+            </section>
+
+            <!-- ==================== 4. TAB: TANULÁS ==================== -->
+            <section id="tab-learning" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white">Önfejlesztési Területek</h3>
+                        <button onclick="openInputModal('learning')" class="text-xs font-bold px-2.5 py-1.5 rounded-xl bg-slate-800 text-purple-400">+ Új Terület</button>
+                    </div>
+                    <div id="learningTracksList" class="space-y-2.5"></div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <h3 class="text-sm font-bold text-white">Tanulási Blokk Naplózása</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <select id="learnTrackSelect" class="col-span-2 bg-slate-950 border border-slate-800 rounded-2xl px-3 py-2.5 text-xs font-medium text-slate-200"></select>
+                        <input type="number" id="learnMinutes" value="30" min="5" step="5" class="bg-slate-950 border border-slate-800 rounded-2xl px-3 py-2.5 text-xs font-bold text-white text-center" />
+                    </div>
+                    <input type="text" id="learnTopic" placeholder="Mit tanultál ma?" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-white" />
+                    <select id="learnScore" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-amber-300">
+                        <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                        <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                        <option value="3">⭐⭐⭐ (3/5)</option>
+                    </select>
+                    <button onclick="logLearningSession()" class="w-full py-2.5 rounded-2xl bg-purple-600 text-white font-extrabold text-xs">Mentés</button>
+                    <div id="learningLogHistory" class="space-y-2 pt-2"></div>
+                </div>
+            </section>
+
+            <!-- ==================== 5. TAB: ELEMZÉS ==================== -->
+            <section id="tab-analytics" class="hidden space-y-4">
+                <div class="bg-gradient-to-br from-indigo-950/80 via-slate-900 to-emerald-950/60 border border-indigo-700/50 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-extrabold text-indigo-300">🧠 Életoptimalizáló Elemző</h3>
+                        <button onclick="runLifeOptimizationAnalysis()" class="px-3.5 py-2 rounded-2xl bg-indigo-500 text-white font-extrabold text-xs">Elemzés</button>
+                    </div>
+                    <div id="optimizationReportBox" class="bg-slate-950/85 border border-slate-800 rounded-2xl p-3.5 text-xs text-slate-200 space-y-2 leading-relaxed"></div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800/90 rounded-3xl p-4 space-y-3 shadow-sm">
+                    <h3 class="text-sm font-bold text-white">Elmúlt 7 nap mátrixa</h3>
+                    <div class="overflow-x-auto no-scrollbar">
+                        <table class="w-full text-left text-[11px]">
+                            <thead>
+                                <tr class="text-slate-400 border-b border-slate-800">
+                                    <th class="pb-2">Nap</th><th class="pb-2">Kcal / Feh.</th><th class="pb-2">Víz</th><th class="pb-2">Mg</th><th class="pb-2">Tanulás</th><th class="pb-2">Fókusz</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weeklyMatrixBody" class="divide-y divide-slate-800/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- UNIVERZÁLIS INPUT MODAL -->
+        <div id="customInputModal" class="fixed inset-0 z-50 hidden bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-sm w-full p-5 space-y-4 shadow-2xl animate-pop">
+                <div class="flex justify-between items-center">
+                    <h3 id="inputModalTitle" class="text-sm font-extrabold text-white">Adatbevitel</h3>
+                    <button onclick="closeInputModal()" class="text-slate-400 hover:text-white">✕</button>
+                </div>
+                <div id="inputModalFields" class="space-y-3"></div>
+                <div class="flex gap-2 pt-1">
+                    <button onclick="closeInputModal()" class="w-1/3 py-2.5 rounded-2xl bg-slate-800 text-slate-300 text-xs font-bold">Mégse</button>
+                    <button id="inputModalConfirmBtn" class="w-2/3 py-2.5 rounded-2xl bg-emerald-500 text-slate-950 text-xs font-extrabold">Mentés</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECEPTKÖNYV SZERKESZTŐ & NÉZŐ MODAL -->
+        <div id="recipeBookModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3">
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-md w-full p-4 space-y-3.5 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar animate-pop">
+                <div class="flex justify-between items-center">
+                    <h3 id="rbModalTitle" class="text-sm font-extrabold text-emerald-300">📖 Recept Szerkesztése</h3>
+                    <button onclick="closeRecipeBookModal()" class="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+                </div>
+
+                <input type="text" id="rbNameInput" placeholder="Recept neve (pl. Quarkos Reggeli Tál)" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2 text-xs font-bold text-white" />
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-semibold">Kategória</label>
+                        <select id="rbCategorySelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-xs text-white font-semibold">
+                            <option value="breakfast">🥣 Reggeli</option>
+                            <option value="lunch">🍲 Ebéd / Főétel</option>
+                            <option value="sandwich">🥪 Szendvics / Vacsora</option>
+                            <option value="snack">🍏 Nasi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-semibold">Adagszám (összesen)</label>
+                        <input type="number" id="rbServingsInput" value="1" min="1" oninput="recalcModalRecipeMacros()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-2 text-xs font-bold text-white text-center" />
+                    </div>
+                    <div class="flex flex-col justify-end">
+                        <label class="flex items-center justify-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl py-2 px-2 cursor-pointer">
+                            <input type="checkbox" id="rbFeaturedCheck" class="accent-amber-400" />
+                            <span class="text-[11px] font-extrabold text-amber-300">⭐ Kiemelt</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Hozzávalók összeállítása az Alapanyag-bázisból (Rugalmas, mobilbarát elrendezés) -->
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3 space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[11px] font-bold text-slate-300">Hozzávalók (Alapanyag-adatbázisból)</span>
+                        <span class="text-[10px] text-emerald-400 font-semibold">Automata makró</span>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-1.5">
+                        <select id="rbAddIngSelect" class="w-full sm:flex-1 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-2 text-xs text-slate-200"></select>
+                        <div class="flex gap-1.5">
+                            <input type="number" id="rbAddIngGrams" value="100" min="1" class="w-20 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-2 text-xs font-bold text-center text-white" placeholder="g" />
+                            <button onclick="addIngToModalRecipe()" class="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs whitespace-nowrap">+ Hozzáad</button>
+                        </div>
+                    </div>
+
+                    <div id="rbIngredientsList" class="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar"></div>
+
+                    <!-- Élő 1 adagra jutó makró összesítő -->
+                    <div id="rbLiveMacroSummary" class="pt-2 border-t border-slate-800 flex justify-between items-center text-[11px]">
+                        <span class="text-slate-400">1 adag tápértéke:</span>
+                        <span class="font-extrabold text-emerald-300">0 kcal • 0g F • 0g CH • 0g Zs</span>
+                    </div>
+                </div>
+
+                <!-- Elkészítési leírás / Főzési recept -->
+                <div>
+                    <label class="text-[10px] text-slate-400 font-semibold">📖 Elkészítési lépések / Főzési útmutató</label>
+                    <textarea id="rbInstructionsInput" rows="4" placeholder="Írd le lépésről lépésre, hogyan készül..." class="w-full mt-1 bg-slate-950 border border-slate-800 rounded-2xl p-3 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <button onclick="deleteRecipeFromModal()" id="rbDeleteBtn" class="hidden px-3 py-2.5 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-bold">🗑️</button>
+                    <button onclick="closeRecipeBookModal()" class="flex-1 py-2.5 rounded-2xl bg-slate-800 text-slate-300 text-xs font-bold">Mégse</button>
+                    <button onclick="saveRecipeFromModal()" class="flex-1 py-2.5 rounded-2xl bg-emerald-500 text-slate-950 text-xs font-extrabold">💾 Recept Mentése</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BEÁLLÍTÁSOK MODAL -->
+        <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-sm w-full p-5 space-y-4 shadow-2xl animate-pop">
+                <div class="flex justify-between items-center"><h3 class="text-sm font-extrabold text-white">Beállítások</h3><button onclick="closeSettingsModal()" class="text-slate-400">✕</button></div>
+                <input type="password" id="geminiKeyInput" placeholder="Gemini API Kulcs (opcionális)" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3 py-2 text-xs text-white" />
+                <div class="flex gap-2">
+                    <button onclick="exportDataJson()" class="flex-1 py-2.5 rounded-2xl bg-slate-800 text-emerald-400 text-xs font-bold">⬇️ Mentés (JSON)</button>
+                    <label class="flex-1 py-2.5 rounded-2xl bg-slate-800 text-cyan-400 text-xs font-bold text-center cursor-pointer">⬆️ Betöltés<input type="file" accept=".json" onchange="importDataJson(event)" class="hidden" /></label>
+                </div>
+                <button onclick="saveSettingsAndClose()" class="w-full py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs">Mentés & Kész</button>
+            </div>
+        </div>
+
+        <!-- TOAST -->
+        <div id="toastBanner" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
+            <div class="bg-emerald-500 text-slate-950 px-4 py-2 rounded-full shadow-xl text-xs font-extrabold flex items-center gap-2">
+                <span id="toastIcon">✨</span><span id="toastText">Mentve!</span>
+            </div>
+        </div>
+
+        <!-- BOTTOM NAV -->
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 px-2 py-1.5">
+            <div class="grid grid-cols-5 gap-1">
+                <button onclick="switchTab('today')" id="nav-today" class="flex flex-col items-center py-1.5 rounded-2xl text-emerald-400 bg-emerald-500/10 transition"><i data-lucide="zap" class="w-4 h-4"></i><span class="text-[10px] font-bold mt-1">Ma</span></button>
+                <button onclick="switchTab('nutrition')" id="nav-nutrition" class="flex flex-col items-center py-1.5 rounded-2xl text-slate-400 transition"><i data-lucide="utensils" class="w-4 h-4"></i><span class="text-[10px] font-bold mt-1">Étkezés</span></button>
+                <button onclick="switchTab('micros')" id="nav-micros" class="flex flex-col items-center py-1.5 rounded-2xl text-slate-400 transition"><i data-lucide="pill" class="w-4 h-4"></i><span class="text-[10px] font-bold mt-1">Mikrók</span></button>
+                <button onclick="switchTab('learning')" id="nav-learning" class="flex flex-col items-center py-1.5 rounded-2xl text-slate-400 transition"><i data-lucide="graduation-cap" class="w-4 h-4"></i><span class="text-[10px] font-bold mt-1">Tanulás</span></button>
+                <button onclick="switchTab('analytics')" id="nav-analytics" class="flex flex-col items-center py-1.5 rounded-2xl text-slate-400 transition"><i data-lucide="bar-chart-3" class="w-4 h-4"></i><span class="text-[10px] font-bold mt-1">Elemzés</span></button>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'PULSE_LIFE_OS_V3';
+
+        const STRENGTH_TEMPLATES = [
+            { id: 'st_upper', title: '💪 A-nap: Felsőtest & Erősítés', duration: 40, intensity: 'intense', exercises: '• Fekvőtámasz: 4x12\n• Evezés: 4x12\n• Vállból nyomás: 3x12\n• Plank: 3x45 mp' },
+            { id: 'st_lower', title: '🦵 B-nap: Alsótest & Core', duration: 40, intensity: 'intense', exercises: '• Guggolás: 4x15\n• Kitörés: 3x10\n• Csípőemelés: 3x15\n• Hasprés: 3x15' }
+        ];
+
+        const ACTIVITY_PROFILES = {
+            rest: { label: 'Pihenőnap', kcal: 1950, pro: 155, carb: 170, fat: 65, waterBonus: 0, hint: 'Pihenőnap.' },
+            light: { label: 'Könnyű / Séta', kcal: 2250, pro: 165, carb: 230, fat: 70, waterBonus: 1, hint: 'Aktív nap (+1 pohár víz).' },
+            intense: { label: 'Erősítés / Intenzív', kcal: 2600, pro: 180, carb: 300, fat: 75, waterBonus: 2, hint: 'Erősítő edzésnap (+2 pohár víz).' }
+        };
+
+        const MICRO_TARGETS = {
+            vitD: { name: 'D3-vitamin', unit: 'NE', target: 4000 },
+            mg: { name: 'Magnézium', unit: 'mg', target: 400 },
+            vitC: { name: 'C-vitamin', unit: 'mg', target: 500 },
+            zn: { name: 'Cink', unit: 'mg', target: 15 },
+            omega: { name: 'Omega-3', unit: 'mg', target: 1500 },
+            ca: { name: 'Kalcium', unit: 'mg', target: 1000 },
+            fe: { name: 'Vas', unit: 'mg', target: 14 }
+        };
+
+        function formatDateKey(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function getTodayStr() { return formatDateKey(new Date()); }
+        function getOffsetDateStr(daysAgo) { const d = new Date(); d.setDate(d.getDate() - daysAgo); return formatDateKey(d); }
+        function getFutureDateStr(fromDateStr, daysAhead) {
+            const parts = fromDateStr.split('-').map(Number);
+            const d = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+            d.setDate(d.getDate() + daysAhead);
+            return formatDateKey(d);
+        }
+
+        const DEFAULT_INGREDIENTS_DB = [
+            { id: 'ing_quark', name: 'Quark / Sovány krémtúró', kcal: 68, pro: 12, carb: 4, fat: 0.3 },
+            { id: 'ing_greek', name: 'Görög joghurt (5%)', kcal: 95, pro: 9, carb: 3.8, fat: 5 },
+            { id: 'ing_oats', name: 'Zabpehely', kcal: 370, pro: 13, carb: 60, fat: 7 },
+            { id: 'ing_cocoa', name: 'Holland kakaópor (cukormentes)', kcal: 228, pro: 20, carb: 11, fat: 14 },
+            { id: 'ing_coconut', name: 'Kókuszreszelék', kcal: 660, pro: 7, carb: 24, fat: 64 },
+            { id: 'ing_banana', name: 'Banán', kcal: 89, pro: 1.1, carb: 23, fat: 0.3 },
+            { id: 'ing_honey', name: 'Méz', kcal: 304, pro: 0.3, carb: 82, fat: 0 },
+            { id: 'ing_schiacciata', name: 'Schiacciata kenyér (nem kovászos)', kcal: 275, pro: 8.5, carb: 48, fat: 4.8 },
+            { id: 'ing_salami', name: 'Pikáns Milánói szalámi', kcal: 390, pro: 22, carb: 1, fat: 33 },
+            { id: 'ing_cheese', name: 'Félkemény sajt / Provolone', kcal: 350, pro: 25, carb: 1, fat: 27 },
+            { id: 'ing_sundried', name: 'Szárított paradicsom', kcal: 210, pro: 5, carb: 23, fat: 10 },
+            { id: 'ing_hothoney', name: 'Hot Honey szósz', kcal: 300, pro: 0, carb: 78, fat: 0 },
+            { id: 'ing_mortadella', name: 'Olasz Mortadella', kcal: 310, pro: 16, carb: 1, fat: 26 },
+            { id: 'ing_stracciatella', name: 'Stracciatella / Burrata krém', kcal: 250, pro: 12, carb: 2, fat: 21 },
+            { id: 'ing_pesto', name: 'Zöld Pesto (Genovese)', kcal: 450, pro: 5, carb: 4, fat: 45 },
+            { id: 'ing_crudo', name: 'Prosciutto Crudo sonka', kcal: 225, pro: 28, carb: 0.5, fat: 12 },
+            { id: 'ing_rukkola', name: 'Rukkola & Friss paradicsom', kcal: 22, pro: 1.5, carb: 3.5, fat: 0.3 },
+            { id: 'ing_chicken', name: 'Csirkemell filé (nyers)', kcal: 110, pro: 23, carb: 0, fat: 1.2 },
+            { id: 'ing_pork_mince', name: 'Sovány darált hús (marha/sertés)', kcal: 185, pro: 20, carb: 0, fat: 11 },
+            { id: 'ing_peas', name: 'Zöldborsó', kcal: 81, pro: 5.4, carb: 14, fat: 0.4 },
+            { id: 'ing_rice', name: 'Jázmin rizs (szárazon)', kcal: 350, pro: 7.5, carb: 78, fat: 0.6 },
+            { id: 'ing_pasta', name: 'Durum száraztészta', kcal: 355, pro: 12.5, carb: 72, fat: 1.5 },
+            { id: 'ing_cream', name: 'Főzőtejszín / Tejföl (12-15%)', kcal: 160, pro: 3, carb: 4, fat: 15 }
+        ];
+
+        const DEFAULT_RECIPE_BOOK = [
+            {
+                id: 'rb_bf_banana',
+                name: '🥣 Quark & Görög Joghurt Tál (Banános)',
+                category: 'breakfast',
+                featured: true,
+                servings: 1,
+                ingredients: [
+                    { ingId: 'ing_quark', grams: 150 },
+                    { ingId: 'ing_greek', grams: 100 },
+                    { ingId: 'ing_oats', grams: 45 },
+                    { ingId: 'ing_cocoa', grams: 8 },
+                    { ingId: 'ing_coconut', grams: 10 },
+                    { ingId: 'ing_banana', grams: 100 }
+                ],
+                instructions: '1. A banánt egy tálban villával alaposan összezúzzuk.\n2. Hozzákeverjük a Quarkot és a görög joghurtot, amíg krémes nem lesz.\n3. Beleforgatjuk a zabpelyhet, a kakaóport és a kókuszreszeléket.'
+            },
+            {
+                id: 'rb_bf_sweet',
+                name: '🍯 Quark & Görög Joghurt Tál (Édesítős / Mézes)',
+                category: 'breakfast',
+                featured: true,
+                servings: 1,
+                ingredients: [
+                    { ingId: 'ing_quark', grams: 150 },
+                    { ingId: 'ing_greek', grams: 100 },
+                    { ingId: 'ing_oats', grams: 45 },
+                    { ingId: 'ing_cocoa', grams: 8 },
+                    { ingId: 'ing_coconut', grams: 10 },
+                    { ingId: 'ing_honey', grams: 12 }
+                ],
+                instructions: '1. A Quarkot és a görög joghurtot simára keverjük édesítővel vagy egy kevés mézzel.\n2. Hozzáadjuk a zabpelyhet, a holland kakaóport és a kókuszreszeléket.\n3. Pár perc pihentetés után azonnal fogyasztható.'
+            },
+            {
+                id: 'rb_sch_salami',
+                name: '🌶️ Pikáns Milánói & Hot Honey Schiacciata',
+                category: 'sandwich',
+                featured: true,
+                servings: 1,
+                ingredients: [
+                    { ingId: 'ing_schiacciata', grams: 130 },
+                    { ingId: 'ing_salami', grams: 45 },
+                    { ingId: 'ing_cheese', grams: 35 },
+                    { ingId: 'ing_sundried', grams: 25 },
+                    { ingId: 'ing_hothoney', grams: 12 }
+                ],
+                instructions: '1. A nem kovászos Schiacciata kenyeret félbevágjuk és kontaktgrillben vagy sütőben ropogósra pirítjuk.\n2. Megpakoljuk a pikáns milánói szalámival, sajttal és szárított paradicsommal.\n3. Tálaláskor megcsorgatjuk a csípős-édes Hot Honey szósszal.'
+            },
+            {
+                id: 'rb_sch_mortadella',
+                name: '🧀 Mortadella, Stracciatella & Pesto Schiacciata',
+                category: 'sandwich',
+                featured: true,
+                servings: 1,
+                ingredients: [
+                    { ingId: 'ing_schiacciata', grams: 130 },
+                    { ingId: 'ing_mortadella', grams: 55 },
+                    { ingId: 'ing_stracciatella', grams: 50 },
+                    { ingId: 'ing_pesto', grams: 18 }
+                ],
+                instructions: '1. A frissen pirított Schiacciata belső felét megkenjük zöld pestóval.\n2. Lazán belehalmozzuk a hajszálvékony mortadellát.\n3. A tetejére kanalazzuk a krémes stracciatellát.'
+            },
+            {
+                id: 'rb_sch_crudo',
+                name: '🥬 Crudo Sonka, Sajt & Rukkola Schiacciata',
+                category: 'sandwich',
+                featured: true,
+                servings: 1,
+                ingredients: [
+                    { ingId: 'ing_schiacciata', grams: 130 },
+                    { ingId: 'ing_crudo', grams: 60 },
+                    { ingId: 'ing_cheese', grams: 35 },
+                    { ingId: 'ing_rukkola', grams: 50 }
+                ],
+                instructions: '1. A félbevágott Schiacciatába rétegezzük a sajtot és a Prosciutto Crudo szeleteket.\n2. Friss rukkolával és szeletelt paradicsommal tesszük teljessé.'
+            },
+            {
+                id: 'rb_lunch_tarkonyos',
+                name: '🍲 Tárkonyos-Tejszínes Csirkeragu Rizzsel (4 főre, 3 napos)',
+                category: 'lunch',
+                featured: false,
+                servings: 12,
+                ingredients: [
+                    { ingId: 'ing_chicken', grams: 1500 },
+                    { ingId: 'ing_peas', grams: 600 },
+                    { ingId: 'ing_cream', grams: 400 },
+                    { ingId: 'ing_rice', grams: 800 }
+                ],
+                instructions: '1. A felkockázott csirkemellet kevés zsiradékon fehéredésig pirítjuk hagymás alapon.\n2. Fűszerezzük sóval, borssal, tárkonnyal, majd felöntjük alaplével.\n3. Hozzáadjuk a zöldborsót, végül tejszínes habarással sűrítjük és citromlével ízesítjük. Párolt rizzsel tálaljuk.'
+            }
+        ];
+
+        let schiaccciataSizeMode = 'large'; // 'large' or 'small'
+        let currentRecipeBookCategory = 'all';
+        let modalRecipeEditingId = null;
+        let modalRecipeDraftIngredients = [];
+        let lastGeneratedAIRecipe = null;
+
+        function getIngredientById(ingId) {
+            const db = state.ingredientsDb || DEFAULT_INGREDIENTS_DB;
+            return db.find(i => i.id === ingId) || null;
+        }
+
+        function computeRecipeMacrosPerServing(recipe) {
+            const servings = Math.max(1, Number(recipe.servings) || 1);
+            let totalKcal = 0, totalPro = 0, totalCarb = 0, totalFat = 0;
+
+            (recipe.ingredients || []).forEach(item => {
+                const ing = getIngredientById(item.ingId);
+                if (ing) {
+                    const ratio = (Number(item.grams) || 0) / 100;
+                    totalKcal += ing.kcal * ratio;
+                    totalPro += ing.pro * ratio;
+                    totalCarb += ing.carb * ratio;
+                    totalFat += ing.fat * ratio;
+                } else if (item.customKcal !== undefined) {
+                    totalKcal += Number(item.customKcal) || 0;
+                    totalPro += Number(item.customPro) || 0;
+                    totalCarb += Number(item.customCarb) || 0;
+                    totalFat += Number(item.customFat) || 0;
+                }
+            });
+
+            return {
+                kcal: Math.round(totalKcal / servings),
+                pro: Number((totalPro / servings).toFixed(1)),
+                carb: Number((totalCarb / servings).toFixed(1)),
+                fat: Number((totalFat / servings).toFixed(1))
+            };
+        }
+
+        function formatRecipeIngredientsSummary(recipe) {
+            return (recipe.ingredients || []).map(item => {
+                const ing = getIngredientById(item.ingId);
+                const name = ing ? ing.name : (item.customName || 'Alapanyag');
+                return `${item.grams}g ${name}`;
+            }).join(', ');
+        }
+
+        function setSchiaccciataSize(mode) {
+            schiaccciataSizeMode = mode;
+            document.getElementById('schSizeLarge').className = mode === 'large' ? 'px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500 text-slate-950 transition' : 'px-2 py-0.5 rounded-lg text-[10px] font-bold text-slate-400 transition';
+            document.getElementById('schSizeSmall').className = mode === 'small' ? 'px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500 text-slate-950 transition' : 'px-2 py-0.5 rounded-lg text-[10px] font-bold text-slate-400 transition';
+            renderSchiaccciataPresets();
+            showToast(mode === 'small' ? 'Szendvics méret: Kicsi (Feles adag)' : 'Szendvics méret: Nagy (1 adag)', '🥪');
+        }
+
+        function renderSchiaccciataPresets() {
+            const container = document.getElementById('schiaccciataPresetsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const mult = schiaccciataSizeMode === 'small' ? 0.5 : 1.0;
+            const sizeLabel = schiaccciataSizeMode === 'small' ? '(Kicsi - Feles)' : '(Nagy)';
+
+            const featuredSandwiches = (state.recipeBook || []).filter(r => r.category === 'sandwich' && r.featured);
+
+            if (featuredSandwiches.length === 0) {
+                container.innerHTML = `<p class="text-[11px] text-slate-400 py-1">Nincs kiemelt szendvics. Kapcsold be a ⭐ csillagot a Receptkönyvben!</p>`;
+                return;
+            }
+
+            featuredSandwiches.forEach(rec => {
+                const macros = computeRecipeMacrosPerServing(rec);
+                const scaledKcal = Math.round(macros.kcal * mult);
+                const scaledPro = Number((macros.pro * mult).toFixed(1));
+                const scaledCarb = Number((macros.carb * mult).toFixed(1));
+                const scaledFat = Number((macros.fat * mult).toFixed(1));
+                const summary = formatRecipeIngredientsSummary(rec);
+
+                const row = document.createElement('div');
+                row.className = 'w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 flex items-center justify-between text-left transition';
+                row.innerHTML = `
+                    <div class="min-w-0 pr-2 flex-1 cursor-pointer" onclick="logItemToDayJournal('${escapeHtml(rec.name)} ${sizeLabel}', ${mult === 0.5 ? 50 : 100}, ${scaledKcal}, ${scaledPro}, ${scaledCarb}, ${scaledFat})">
+                        <div class="text-xs font-bold text-white">${escapeHtml(rec.name)} <span class="text-amber-300">${sizeLabel}</span></div>
+                        <div class="text-[10px] text-slate-400 truncate">${escapeHtml(summary)}</div>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <span class="text-[10px] font-extrabold text-amber-300">${scaledKcal} kcal • ${scaledPro}g F</span>
+                        <button onclick="openRecipeBookModal('${rec.id}')" class="p-1 text-slate-400 hover:text-white" title="Recept szerkesztése a Receptkönyvben">⚙️</button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        const FAMILY_BATCH_RECIPES = [
+            { id: 'batch_bolognai', keywords: ['bolognai', 'marha', 'ragu'], name: '🍲 Klasszikus Házias Bolognai Ragu (4 főre)', kcal: 590, pro: 38, carb: 60, fat: 19, ingredients4People: ['1.2 kg darált hús', '2 üveg passata', 'zöldségek, 1 kg tészta'] },
+            { id: 'batch_tarkonyos', keywords: ['tárkonyos', 'csirke', 'pulyka'], name: '🍲 Tárkonyos-Tejszínes Csirkeragu (4 főre)', kcal: 540, pro: 44, carb: 52, fat: 15, ingredients4People: ['1.4 kg csirkemell', 'tejszín, gomba, zöldborsó, rizs'] }
+        ];
+
+        function createDefaultState() {
+            const today = getTodayStr();
+            const d1 = getOffsetDateStr(1);
+            return {
+                activeDate: today,
+                geminiApiKey: '',
+                waterSettings: { baseGoal: 8, autoActivityBonus: true },
+                ingredientsDb: JSON.parse(JSON.stringify(DEFAULT_INGREDIENTS_DB)),
+                recipeBook: JSON.parse(JSON.stringify(DEFAULT_RECIPE_BOOK)),
+                presetsConfig: {
+                    bfName: '🥣 Kiemelt Reggelik (a Receptkönyvből)',
+                    bfBanana: { name: '🥣 Reggeli Quark + Joghurt Tál (Banános)', kcal: 510, pro: 36, carb: 62, fat: 11 },
+                    bfSweet: { name: '🥣 Reggeli Quark + Joghurt Tál (Édesítős)', kcal: 425, pro: 35, carb: 40, fat: 10.5 }
+                },
+                activeBatchMeal: { name: '🍲 Tárkonyos Csirkeragu (4 főre)', startDate: d1, validUntil: getFutureDateStr(today, 2), kcal: 540, pro: 44, carb: 52, fat: 15, ingredients4People: ['1.4 kg csirkemell', 'tejszín, gomba, rizs'] },
+                shoppingList: [
+                    { id: 'sh1', text: '1 kg Quark & Görög joghurt', done: false },
+                    { id: 'sh2', text: 'Schiacciata kenyér & feltétek', done: false }
+                ],
+                habits: [
+                    { id: 'h1', name: 'Magas fehérjedús reggeli', icon: '🥣', desc: 'Quark + joghurt' },
+                    { id: 'h2', name: 'Olvasás & Szellemi töltekezés', icon: '📚', desc: 'Könyv és jegyzetek' },
+                    { id: 'h3', name: 'Kutyaséta / Séta', icon: '🐕', desc: 'Napi mozgás' }
+                ],
+                foods: [
+                    { id: 'f_bf1', name: '🥣 Reggeli Quark + Joghurt Tál (Banános)', kcal: 510, pro: 36, carb: 62, fat: 11, micros: { mg: 135, ca: 290 } },
+                    { id: 'f_bf2', name: '🥣 Reggeli Quark + Joghurt Tál (Édesítős)', kcal: 425, pro: 35, carb: 40, fat: 10.5, micros: { mg: 115, ca: 285 } }
+                ],
+                supplements: [
+                    { id: 's1', name: 'D3 Vitamin', dose: '1 kapszula', timing: 'Reggel', stock: 40, micros: { vitD: 4000 } },
+                    { id: 's4', name: 'Magnézium', dose: '2 kapszula', timing: 'Este', stock: 30, micros: { mg: 300 } }
+                ],
+                learningTracks: [
+                    { id: 'l1', title: 'Adatelemzés & Python', category: 'Technológia', targetMinutes: 600, loggedMinutes: 120 }
+                ],
+                days: {
+                    [today]: {
+                        activity: 'light',
+                        water: 4,
+                        waterCustomGoal: null,
+                        habitsDone: { h1: true, h2: true },
+                        habitNotes: { h2: 'James Clear – Atomi szokások olvasása.' },
+                        workouts: [{ id: 'w1', type: 'dog', title: '🐕 Kutyaséta', duration: 45, done: true }],
+                        foodLogs: [
+                            { id: 'fl_init1', name: '🥣 Quark & Görög Joghurt Tál (Banános)', grams: 100, kcal: 510, pro: 36, carb: 62, fat: 11, eatenTime: '07:30', eaten: true }
+                        ],
+                        suppsTaken: { s1: true },
+                        learningLogs: [],
+                        checkin: { energy: 8, focus: 8, sleep: 7, note: '' }
+                    }
+                }
+            };
+        }
+
+        let state = loadState();
+        let draftRecipeIngredients = [];
+        let activeTab = 'today';
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return createDefaultState();
+                const parsed = JSON.parse(raw);
+                const def = createDefaultState();
+                const merged = { ...def, ...parsed, activeDate: getTodayStr() };
+                if (!merged.ingredientsDb || merged.ingredientsDb.length === 0) {
+                    merged.ingredientsDb = JSON.parse(JSON.stringify(DEFAULT_INGREDIENTS_DB));
+                }
+                if (!merged.recipeBook || merged.recipeBook.length === 0) {
+                    merged.recipeBook = JSON.parse(JSON.stringify(DEFAULT_RECIPE_BOOK));
+                }
+                return merged;
+            } catch (e) { return createDefaultState(); }
+        }
+
+        function saveState() {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+        }
+
+        function getDayData(dateStr = state.activeDate) {
+            if (!state.days[dateStr]) {
+                state.days[dateStr] = {
+                    activity: 'light',
+                    water: 0,
+                    waterCustomGoal: null,
+                    habitsDone: {},
+                    habitNotes: {},
+                    workouts: [],
+                    foodLogs: [],
+                    suppsTaken: {},
+                    learningLogs: [],
+                    checkin: { energy: 7, focus: 7, sleep: 7, note: '' }
+                };
+            }
+            const d = state.days[dateStr];
+            if (!d.habitNotes) d.habitNotes = {};
+            if (!d.workouts) d.workouts = {};
+            return d;
+        }
+
+        function switchTab(tabName) {
+            activeTab = tabName;
+            ['today', 'nutrition', 'micros', 'learning', 'analytics'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).className = 'flex flex-col items-center py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 transition';
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabName}`).className = 'flex flex-col items-center py-1.5 rounded-2xl text-emerald-400 bg-emerald-500/10 transition';
+            if (tabName === 'analytics') runLifeOptimizationAnalysis();
+            renderAll();
+        }
+
+        function renderAll() {
+            const day = getDayData();
+            document.getElementById('activeDateInput').value = state.activeDate;
+            document.getElementById('headerDateLabel').textContent = state.activeDate === getTodayStr() ? `Ma (${state.activeDate})` : `Napló: ${state.activeDate}`;
+
+            const prof = ACTIVITY_PROFILES[day.activity] || ACTIVITY_PROFILES.light;
+            document.getElementById('activityBadge').textContent = prof.label;
+            document.getElementById('activityTargetHint').textContent = prof.hint;
+            ['rest', 'light', 'intense'].forEach(k => {
+                const btn = document.getElementById(`act-${k}`);
+                btn.className = day.activity === k ? 'py-2 px-2 rounded-2xl text-xs font-extrabold border border-emerald-500 bg-emerald-500/20 text-emerald-300 shadow-sm transition' : 'py-2 px-2 rounded-2xl text-xs font-semibold border border-slate-800 bg-slate-950 text-slate-400 transition';
+            });
+
+            renderWorkoutsSection(day);
+
+            const totals = calculateDailyTotals(state.activeDate);
+            document.getElementById('dashKcal').textContent = Math.round(totals.kcal);
+            document.getElementById('dashKcalTarget').textContent = `/ ${prof.kcal} kcal`;
+            document.getElementById('barKcal').style.width = `${Math.min(100, Math.round((totals.kcal / prof.kcal) * 100))}%`;
+
+            document.getElementById('dashPro').textContent = `${Math.round(totals.pro)}g`;
+            document.getElementById('dashProTarget').textContent = `/ ${prof.pro}g`;
+            document.getElementById('barPro').style.width = `${Math.min(100, Math.round((totals.pro / prof.pro) * 100))}%`;
+            document.getElementById('barCarb').style.width = `${Math.min(100, Math.round((totals.carb / prof.carb) * 100))}%`;
+            document.getElementById('barFat').style.width = `${Math.min(100, Math.round((totals.fat / prof.fat) * 100))}%`;
+            document.getElementById('dashCarb').textContent = `${Math.round(totals.carb)}g`;
+            document.getElementById('dashFat').textContent = `${Math.round(totals.fat)}g`;
+
+            // Fehérjecél automatikus pipa a naplón belül
+            const proteinBadge = document.getElementById('proteinGoalBadge');
+            if (totals.pro >= prof.pro) {
+                proteinBadge.classList.remove('hidden');
+            } else {
+                proteinBadge.classList.add('hidden');
+            }
+
+            renderWater(day);
+            renderHabits(day);
+            renderNutritionTab(day);
+            renderSmartNutritionSuggestions(totals, prof);
+            renderMicrosTab(day, totals);
+            renderLearningTab(day);
+            renderWeeklyMatrix();
+            lucide.createIcons();
+        }
+
+        // ==================== WORKOUTS & WATER ====================
+        function setDayActivity(level) {
+            const day = getDayData();
+            day.activity = level;
+            saveState();
+            renderAll();
+            showToast(`Aktivitás: ${ACTIVITY_PROFILES[level].label}`, '🔥');
+        }
+
+        function toggleStrengthPlanSelector() {
+            const el = document.getElementById('strengthPlanSelector');
+            el.classList.toggle('hidden');
+            if (!el.classList.contains('hidden')) {
+                const list = document.getElementById('strengthTemplatesList');
+                list.innerHTML = '';
+                STRENGTH_TEMPLATES.forEach(tpl => {
+                    const btn = document.createElement('div');
+                    btn.className = 'p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 cursor-pointer transition';
+                    btn.onclick = () => addStrengthTemplateToDay(tpl.id);
+                    btn.innerHTML = `<div class="flex justify-between items-center"><span class="text-xs font-bold text-white">${escapeHtml(tpl.title)}</span><span class="text-[10px] font-bold text-amber-400">${tpl.duration} perc</span></div><div class="text-[10px] text-slate-400 mt-1 whitespace-pre-line">${escapeHtml(tpl.exercises)}</div>`;
+                    list.appendChild(btn);
+                });
+            }
+        }
+
+        function addStrengthTemplateToDay(tplId) {
+            const tpl = STRENGTH_TEMPLATES.find(t => t.id === tplId);
+            if (!tpl) return;
+            const day = getDayData();
+            day.workouts.push({ id: 'w_' + Date.now(), type: 'strength', title: tpl.title, duration: tpl.duration, details: tpl.exercises, done: false });
+            if (tpl.intensity === 'intense') day.activity = 'intense';
+            document.getElementById('strengthPlanSelector').classList.add('hidden');
+            saveState();
+            renderAll();
+            showToast('Erősítő edzésterv betervezve!', '💪');
+        }
+
+        function quickAddWorkout(kind) {
+            openInputModal(kind === 'dog' ? 'quickDogWalk' : 'quickWalk');
+        }
+
+        function toggleWorkoutDone(workoutId) {
+            const day = getDayData();
+            const w = day.workouts.find(item => item.id === workoutId);
+            if (!w) return;
+            w.done = !w.done;
+            saveState();
+            renderAll();
+        }
+
+        function removeWorkout(workoutId, event) {
+            event.stopPropagation();
+            const day = getDayData();
+            day.workouts = day.workouts.filter(item => item.id !== workoutId);
+            saveState();
+            renderAll();
+        }
+
+        function renderWorkoutsSection(day) {
+            const list = document.getElementById('dailyWorkoutsList');
+            if (!list) return;
+            list.innerHTML = '';
+            if (!day.workouts || day.workouts.length === 0) {
+                list.innerHTML = `<p class="text-[11px] text-slate-500 py-1 text-center">Nincs mozgás betervezve mára.</p>`;
+                return;
+            }
+            day.workouts.forEach(w => {
+                const card = document.createElement('div');
+                card.onclick = () => toggleWorkoutDone(w.id);
+                card.className = `p-3 rounded-2xl border transition cursor-pointer ${w.done ? 'bg-emerald-950/25 border-emerald-500/40 text-emerald-100' : 'bg-slate-950/90 border-slate-800 text-slate-200'}`;
+                card.innerHTML = `<div class="flex items-center justify-between"><div class="text-xs font-bold ${w.done ? 'line-through text-slate-400' : 'text-white'}">${escapeHtml(w.title)} (${w.duration}p)</div><div class="w-5 h-5 rounded-lg flex items-center justify-center border ${w.done ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold text-xs' : 'border-slate-700'}">${w.done ? '✓' : ''}</div></div>`;
+                list.appendChild(card);
+            });
+        }
+
+        function getEffectiveWaterGoal(day) {
+            const base = day.waterCustomGoal !== null ? day.waterCustomGoal : (state.waterSettings?.baseGoal || 8);
+            const bonus = state.waterSettings?.autoActivityBonus !== false ? (ACTIVITY_PROFILES[day.activity]?.waterBonus || 0) : 0;
+            return Math.max(4, Math.min(16, base + bonus));
+        }
+
+        function adjustWaterBaseGoal(delta) {
+            if (!state.waterSettings) state.waterSettings = { baseGoal: 8, autoActivityBonus: true };
+            state.waterSettings.baseGoal = Math.max(4, Math.min(14, state.waterSettings.baseGoal + delta));
+            saveState();
+            renderAll();
+        }
+
+        function toggleWaterAutoBonus() {
+            state.waterSettings.autoActivityBonus = !state.waterSettings.autoActivityBonus;
+            saveState();
+            renderAll();
+        }
+
+        function renderWater(day) {
+            const goal = getEffectiveWaterGoal(day);
+            const current = day.water || 0;
+            document.getElementById('waterSubtext').textContent = `${current} / ${goal} pohár (${current * 300} ml)`;
+            document.getElementById('waterBaseGoalLabel').textContent = `${state.waterSettings.baseGoal} pohár`;
+            const row = document.getElementById('waterGlassesRow');
+            row.innerHTML = '';
+            for (let i = 1; i <= goal; i++) {
+                const filled = i <= current;
+                const btn = document.createElement('button');
+                btn.onclick = () => { day.water = day.water === i ? i - 1 : i; saveState(); renderAll(); };
+                btn.className = `h-10 rounded-xl border flex flex-col items-center justify-center transition ${filled ? 'bg-cyan-500/25 border-cyan-400 text-cyan-200' : 'bg-slate-950 border-slate-800 text-slate-600'}`;
+                btn.innerHTML = `<span class="text-xs">💧</span><span class="text-[9px] font-bold">${i}</span>`;
+                row.appendChild(btn);
+            }
+        }
+
+        function changeWater(delta) {
+            const day = getDayData();
+            day.water = Math.max(0, Math.min(16, (day.water || 0) + delta));
+            saveState();
+            renderAll();
+        }
+
+        function renderHabits(day) {
+            const list = document.getElementById('habitsList');
+            if (!list) return;
+            list.innerHTML = '';
+            (state.habits || []).forEach(h => {
+                const isDone = !!day.habitsDone[h.id];
+                const note = (day.habitNotes && day.habitNotes[h.id]) ? day.habitNotes[h.id] : '';
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-2xl border transition ${isDone ? 'bg-emerald-950/30 border-emerald-500/40' : 'bg-slate-950/90 border-slate-800'}`;
+                div.innerHTML = `
+                    <div class="flex items-center justify-between cursor-pointer" onclick="toggleHabitDone('${h.id}')">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-base">${h.icon || '✨'}</span>
+                            <div>
+                                <div class="text-xs font-bold ${isDone ? 'line-through text-slate-400' : 'text-white'}">${escapeHtml(h.name)}</div>
+                                ${note ? `<div class="text-[10px] text-emerald-300 mt-0.5">📝 ${escapeHtml(note)}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="openHabitNoteModal('${h.id}', event)" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-bold text-slate-300 hover:text-white">📝 Jegyzet</button>
+                            <div class="w-6 h-6 rounded-xl flex items-center justify-center border ${isDone ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold text-xs' : 'border-slate-700'}">${isDone ? '✓' : ''}</div>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function toggleHabitDone(habitId) {
+            const day = getDayData();
+            day.habitsDone[habitId] = !day.habitsDone[habitId];
+            saveState();
+            renderAll();
+        }
+
+        function openHabitNoteModal(habitId, event) {
+            if (event) event.stopPropagation();
+            const h = state.habits.find(item => item.id === habitId);
+            if (!h) return;
+            openInputModal('habitNote', h);
+        }
+
+        function updateCheckinSlider(key, val) {
+            const day = getDayData();
+            day.checkin[key] = Number(val);
+            saveState();
+            renderAll();
+        }
+
+        function updateDailyNote(val) {
+            const day = getDayData();
+            day.checkin.note = val;
+            saveState();
+        }
+
+        // ==================== NUTRITION, RECIPE BOOK & LOGGING ====================
+        function renderEditPresetConfig() {
+            const bfBox = document.getElementById('presetTitleBf')?.parentElement?.parentElement;
+            if (!bfBox) return;
+
+            const featuredBfs = (state.recipeBook || []).filter(r => r.category === 'breakfast' && r.featured);
+
+            let buttonsHtml = '';
+            if (featuredBfs.length === 0) {
+                buttonsHtml = `<p class="text-[11px] text-slate-400 col-span-2 py-1">Nincs kiemelt reggeli. Csillagozd be (⭐) egy reggelit a Receptkönyvben!</p>`;
+            } else {
+                featuredBfs.forEach(rec => {
+                    const m = computeRecipeMacrosPerServing(rec);
+                    const sum = formatRecipeIngredientsSummary(rec);
+                    buttonsHtml += `
+                        <div class="p-2.5 rounded-xl bg-slate-900 border border-emerald-500/30 flex flex-col justify-between gap-1.5">
+                            <div class="cursor-pointer" onclick="logRecipeFromBook('${rec.id}', 1)">
+                                <div class="text-xs font-bold text-white leading-snug">${escapeHtml(rec.name)}</div>
+                                <div class="text-[10px] text-emerald-400 font-extrabold mt-0.5">${m.kcal} kcal • ${m.pro}g F • ${m.carb}g CH</div>
+                                <div class="text-[9px] text-slate-400 truncate mt-0.5">${escapeHtml(sum)}</div>
+                            </div>
+                            <div class="flex justify-between items-center pt-1 border-t border-slate-800/80">
+                                <button onclick="logRecipeFromBook('${rec.id}', 1)" class="text-[10px] font-extrabold text-emerald-300 hover:underline">+ Naplóba</button>
+                                <button onclick="openRecipeBookModal('${rec.id}')" class="text-[10px] text-slate-400 hover:text-white">⚙️ Recept</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            bfBox.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div class="text-xs font-extrabold text-emerald-300">🥣 Kiemelt Reggelik (Receptkönyvből)</div>
+                    <button onclick="openRecipeBookModal(null, 'breakfast')" class="text-[10px] text-emerald-400 hover:text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800">+ Új Reggeli</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    ${buttonsHtml}
+                </div>
+            `;
+        }
+
+        function logRecipeFromBook(recipeId, portionMultiplier = 1) {
+            const rec = (state.recipeBook || []).find(r => r.id === recipeId);
+            if (!rec) return;
+            const m = computeRecipeMacrosPerServing(rec);
+            const labelSuffix = portionMultiplier === 0.5 ? ' (Feles adag)' : '';
+            logItemToDayJournal(
+                rec.name + labelSuffix,
+                Math.round(100 * portionMultiplier),
+                Math.round(m.kcal * portionMultiplier),
+                Number((m.pro * portionMultiplier).toFixed(1)),
+                Number((m.carb * portionMultiplier).toFixed(1)),
+                Number((m.fat * portionMultiplier).toFixed(1))
+            );
+        }
+
+        function setRecipeBookCategory(cat) {
+            currentRecipeBookCategory = cat;
+            ['all', 'breakfast', 'lunch', 'sandwich', 'snack'].forEach(c => {
+                const btn = document.getElementById(`rcat-${c}`);
+                if (!btn) return;
+                if (c === cat) {
+                    btn.className = 'px-3 py-1 rounded-xl text-[11px] font-bold bg-emerald-500 text-slate-950 whitespace-nowrap transition';
+                } else {
+                    btn.className = 'px-3 py-1 rounded-xl text-[11px] font-bold bg-slate-950 text-slate-400 border border-slate-800 whitespace-nowrap transition';
+                }
+            });
+            renderRecipeBookList();
+        }
+
+        function toggleRecipeFeatured(recipeId, event) {
+            if (event) event.stopPropagation();
+            const rec = (state.recipeBook || []).find(r => r.id === recipeId);
+            if (!rec) return;
+            rec.featured = !rec.featured;
+            saveState();
+            renderAll();
+            showToast(rec.featured ? 'Hozzáadva a kiemelt pozícióhoz! ⭐' : 'Eltávolítva a kiemeltek közül', '📖');
+        }
+
+        function renderRecipeBookList() {
+            const container = document.getElementById('recipeBookListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const catLabels = {
+                breakfast: '🥣 Reggeli',
+                lunch: '🍲 Ebéd / Főétel',
+                sandwich: '🥪 Szendvics / Vacsora',
+                snack: '🍏 Nasi'
+            };
+
+            const list = (state.recipeBook || []).filter(r => currentRecipeBookCategory === 'all' || r.category === currentRecipeBookCategory);
+
+            if (list.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-3">Nincs recept ebben a kategóriában.</p>`;
+                return;
+            }
+
+            list.forEach(rec => {
+                const m = computeRecipeMacrosPerServing(rec);
+                const ingSum = formatRecipeIngredientsSummary(rec);
+                const card = document.createElement('div');
+                card.className = 'bg-slate-950/90 border border-slate-800 rounded-2xl p-3 space-y-2 transition hover:border-slate-700';
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0 flex-1 cursor-pointer" onclick="openRecipeBookModal('${rec.id}')">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-900 text-slate-300 border border-slate-800">${catLabels[rec.category] || 'Recept'}</span>
+                                <span class="text-[10px] text-slate-400">${rec.servings || 1} adag</span>
+                            </div>
+                            <h4 class="text-xs font-extrabold text-white mt-1">${escapeHtml(rec.name)}</h4>
+                            <p class="text-[10px] text-slate-400 truncate mt-0.5">${escapeHtml(ingSum)}</p>
+                            <div class="text-[11px] font-extrabold text-emerald-400 mt-1">
+                                1 adag: ${m.kcal} kcal • ${m.pro}g F • ${m.carb}g CH • ${m.fat}g Zs
+                            </div>
+                        </div>
+                        <button onclick="toggleRecipeFeatured('${rec.id}', event)" class="px-2 py-1 rounded-xl border text-xs font-bold transition ${rec.featured ? 'bg-amber-500/20 border-amber-400 text-amber-300' : 'bg-slate-900 border-slate-800 text-slate-500'}" title="Kiemelt megjelenítés fent">
+                            ${rec.featured ? '⭐ Kiemelt' : '☆ Kiemel'}
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between gap-1.5 pt-2 border-t border-slate-800/80">
+                        <button onclick="logRecipeFromBook('${rec.id}', 1)" class="flex-1 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-[11px] font-extrabold transition">
+                            + Naplóba (1 adag)
+                        </button>
+                        ${rec.category === 'lunch' ? `
+                        <button onclick="setRecipeAsActiveBatch('${rec.id}')" class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold" title="Beállítás többnapos aktív ebédnek">
+                            🍲 Többnaposnak
+                        </button>` : ''}
+                        <button onclick="sendRecipeIngredientsToShop('${rec.id}')" class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-[10px] font-bold" title="Hozzávalók a bevásárlólistára">
+                            🛒
+                        </button>
+                        <button onclick="openRecipeBookModal('${rec.id}')" class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-cyan-300 hover:text-white text-[10px] font-bold">
+                            ✏️ Szerk. / Recept
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function setRecipeAsActiveBatch(recipeId) {
+            const rec = (state.recipeBook || []).find(r => r.id === recipeId);
+            if (!rec) return;
+            const m = computeRecipeMacrosPerServing(rec);
+            state.activeBatchMeal = {
+                name: rec.name,
+                startDate: state.activeDate,
+                validUntil: getFutureDateStr(state.activeDate, 3),
+                kcal: m.kcal,
+                pro: m.pro,
+                carb: m.carb,
+                fat: m.fat,
+                recipeId: rec.id
+            };
+            saveState();
+            renderAll();
+            showToast('Beállítva megfőzött többnapos ebédnek!', '🍲');
+        }
+
+        function sendRecipeIngredientsToShop(recipeId) {
+            const rec = (state.recipeBook || []).find(r => r.id === recipeId);
+            if (!rec) return;
+            (rec.ingredients || []).forEach(item => {
+                const ing = getIngredientById(item.ingId);
+                const name = ing ? ing.name : (item.customName || 'Alapanyag');
+                state.shoppingList.unshift({
+                    id: 'sh_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                    text: `${item.grams}g ${name} (${rec.name})`,
+                    done: false
+                });
+            });
+            saveState();
+            renderShoppingList();
+            showToast('Hozzávalók a bevásárlólistára küldve!', '🛒');
+        }
+
+        function openRecipeBookModal(recipeId = null, defaultCategory = 'breakfast') {
+            modalRecipeEditingId = recipeId;
+            const modal = document.getElementById('recipeBookModal');
+            const delBtn = document.getElementById('rbDeleteBtn');
+
+            // Populate ingredient select
+            const ingSelect = document.getElementById('rbAddIngSelect');
+            ingSelect.innerHTML = '';
+            (state.ingredientsDb || []).forEach(ing => {
+                const opt = document.createElement('option');
+                opt.value = ing.id;
+                opt.textContent = `${ing.name} (${ing.kcal} kcal, ${ing.pro}g F / 100g)`;
+                ingSelect.appendChild(opt);
+            });
+
+            if (recipeId) {
+                const rec = (state.recipeBook || []).find(r => r.id === recipeId);
+                if (!rec) return;
+                document.getElementById('rbModalTitle').textContent = '📖 Recept Szerkesztése & Elkészítés';
+                document.getElementById('rbNameInput').value = rec.name;
+                document.getElementById('rbCategorySelect').value = rec.category || 'breakfast';
+                document.getElementById('rbServingsInput').value = rec.servings || 1;
+                document.getElementById('rbFeaturedCheck').checked = !!rec.featured;
+                document.getElementById('rbInstructionsInput').value = rec.instructions || '';
+                modalRecipeDraftIngredients = JSON.parse(JSON.stringify(rec.ingredients || []));
+                delBtn.classList.remove('hidden');
+            } else {
+                document.getElementById('rbModalTitle').textContent = '📖 Új Recept Létrehozása';
+                document.getElementById('rbNameInput').value = '';
+                document.getElementById('rbCategorySelect').value = defaultCategory;
+                document.getElementById('rbServingsInput').value = defaultCategory === 'lunch' ? 8 : 1;
+                document.getElementById('rbFeaturedCheck').checked = (defaultCategory === 'breakfast' || defaultCategory === 'sandwich');
+                document.getElementById('rbInstructionsInput').value = '';
+                modalRecipeDraftIngredients = [];
+                delBtn.classList.add('hidden');
+            }
+
+            renderModalRecipeIngredients();
+            modal.classList.remove('hidden');
+        }
+
+        function closeRecipeBookModal() {
+            document.getElementById('recipeBookModal').classList.add('hidden');
+            modalRecipeEditingId = null;
+        }
+
+        function addIngToModalRecipe() {
+            const ingId = document.getElementById('rbAddIngSelect').value;
+            const grams = Math.max(1, Number(document.getElementById('rbAddIngGrams').value) || 100);
+            if (!ingId) return;
+            const existing = modalRecipeDraftIngredients.find(i => i.ingId === ingId);
+            if (existing) {
+                existing.grams = Number(existing.grams) + grams;
+            } else {
+                modalRecipeDraftIngredients.push({ ingId, grams });
+            }
+            renderModalRecipeIngredients();
+        }
+
+        function updateModalIngGrams(idx, newGrams) {
+            if (!modalRecipeDraftIngredients[idx]) return;
+            modalRecipeDraftIngredients[idx].grams = Math.max(1, Number(newGrams) || 1);
+            recalcModalRecipeMacros();
+        }
+
+        function removeModalIng(idx) {
+            modalRecipeDraftIngredients.splice(idx, 1);
+            renderModalRecipeIngredients();
+        }
+
+        function renderModalRecipeIngredients() {
+            const listEl = document.getElementById('rbIngredientsList');
+            listEl.innerHTML = '';
+
+            if (modalRecipeDraftIngredients.length === 0) {
+                listEl.innerHTML = `<p class="text-[11px] text-slate-500 py-1">Még nincs hozzávaló. Válassz fent egy alapanyagot!</p>`;
+            } else {
+                modalRecipeDraftIngredients.forEach((item, idx) => {
+                    const ing = getIngredientById(item.ingId);
+                    const name = ing ? ing.name : (item.customName || 'Alapanyag');
+                    const ratio = (Number(item.grams) || 0) / 100;
+                    const kcal = ing ? Math.round(ing.kcal * ratio) : Math.round(item.customKcal || 0);
+                    const pro = ing ? (ing.pro * ratio).toFixed(1) : (item.customPro || 0);
+
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between gap-2 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs';
+                    row.innerHTML = `
+                        <div class="min-w-0 flex-1">
+                            <div class="font-bold text-slate-200 truncate">${escapeHtml(name)}</div>
+                            <div class="text-[10px] text-slate-400">${kcal} kcal • ${pro}g F</div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <input type="number" value="${item.grams}" min="1" oninput="updateModalIngGrams(${idx}, this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded-lg px-1.5 py-1 text-xs font-bold text-center text-emerald-300" />
+                            <span class="text-[10px] text-slate-400">g</span>
+                            <button onclick="removeModalIng(${idx})" class="text-slate-500 hover:text-rose-400 px-1 font-bold">✕</button>
+                        </div>
+                    `;
+                    listEl.appendChild(row);
+                });
+            }
+            recalcModalRecipeMacros();
+        }
+
+        function recalcModalRecipeMacros() {
+            const servings = Math.max(1, Number(document.getElementById('rbServingsInput').value) || 1);
+            const m = computeRecipeMacrosPerServing({ servings, ingredients: modalRecipeDraftIngredients });
+            const summaryEl = document.getElementById('rbLiveMacroSummary');
+            if (summaryEl) {
+                summaryEl.innerHTML = `
+                    <span class="text-slate-400">1 adag (${servings} adagból):</span>
+                    <span class="font-extrabold text-emerald-300">${m.kcal} kcal • ${m.pro}g F • ${m.carb}g CH • ${m.fat}g Zs</span>
+                `;
+            }
+        }
+
+        function saveRecipeFromModal() {
+            const name = document.getElementById('rbNameInput').value.trim();
+            if (!name) {
+                showToast('Adj nevet a receptnek!', '⚠️');
+                return;
+            }
+            // Ha a felhasználó kiválasztott egy alapanyagot, de még nem nyomott a "+ Hozzáad" gombra, automatikusan adjuk hozzá:
+            if (modalRecipeDraftIngredients.length === 0) {
+                const pendingIngId = document.getElementById('rbAddIngSelect').value;
+                const pendingGrams = Math.max(1, Number(document.getElementById('rbAddIngGrams').value) || 100);
+                if (pendingIngId) {
+                    modalRecipeDraftIngredients.push({ ingId: pendingIngId, grams: pendingGrams });
+                }
+            }
+            const category = document.getElementById('rbCategorySelect').value;
+            const servings = Math.max(1, Number(document.getElementById('rbServingsInput').value) || 1);
+            const featured = document.getElementById('rbFeaturedCheck').checked;
+            const instructions = document.getElementById('rbInstructionsInput').value.trim();
+
+            if (modalRecipeEditingId) {
+                const rec = (state.recipeBook || []).find(r => r.id === modalRecipeEditingId);
+                if (rec) {
+                    rec.name = name;
+                    rec.category = category;
+                    rec.servings = servings;
+                    rec.featured = featured;
+                    rec.instructions = instructions;
+                    rec.ingredients = JSON.parse(JSON.stringify(modalRecipeDraftIngredients));
+                }
+            } else {
+                state.recipeBook.unshift({
+                    id: 'rb_' + Date.now(),
+                    name,
+                    category,
+                    servings,
+                    featured,
+                    instructions,
+                    ingredients: JSON.parse(JSON.stringify(modalRecipeDraftIngredients))
+                });
+            }
+
+            saveState();
+            closeRecipeBookModal();
+            renderAll();
+            showToast('Recept elmentve és makrók frissítve!', '📖');
+        }
+
+        function deleteRecipeFromModal() {
+            if (!modalRecipeEditingId) return;
+            state.recipeBook = (state.recipeBook || []).filter(r => r.id !== modalRecipeEditingId);
+            saveState();
+            closeRecipeBookModal();
+            renderAll();
+            showToast('Recept törölve', '🗑️');
+        }
+
+        function toggleIngredientDbPanel() {
+            const p = document.getElementById('ingredientDbPanel');
+            p.classList.toggle('hidden');
+            renderIngredientDbList();
+        }
+
+        function renderIngredientDbList() {
+            const list = document.getElementById('ingredientDbList');
+            if (!list) return;
+            list.innerHTML = '';
+            (state.ingredientsDb || []).forEach(ing => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs';
+                row.innerHTML = `
+                    <div>
+                        <div class="font-bold text-white">${escapeHtml(ing.name)}</div>
+                        <div class="text-[10px] text-slate-400">100g: <b>${ing.kcal} kcal</b> • <span class="text-emerald-400">${ing.pro}g F</span> • ${ing.carb}g CH • ${ing.fat}g Zs</div>
+                    </div>
+                    <button onclick="openIngredientModal('${ing.id}')" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-bold text-cyan-300 hover:text-white">✏️ Szerk.</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function openIngredientModal(ingId = null) {
+            const ing = ingId ? (state.ingredientsDb || []).find(i => i.id === ingId) : null;
+            openInputModal('editIngredientDb', ing);
+        }
+
+        function logItemToDayJournal(name, grams, kcal, pro, carb, fat) {
+            const day = getDayData();
+            day.foodLogs.push({
+                id: 'fl_' + Date.now(),
+                name, grams, kcal, pro, carb, fat,
+                eaten: false,
+                eatenTime: null
+            });
+            saveState();
+            renderAll();
+            showToast(`Hozzáadva a naplóhoz: ${name}`, '🍽️');
+        }
+
+        function toggleFoodLogEaten(logId) {
+            const day = getDayData();
+            const item = day.foodLogs.find(f => f.id === logId);
+            if (!item) return;
+
+            if (!item.eaten) {
+                // Kérjük meg az időpontot!
+                openInputModal('logEatenTime', item);
+            } else {
+                item.eaten = false;
+                item.eatenTime = null;
+                saveState();
+                renderAll();
+            }
+        }
+
+        function editFoodLogItem(logId) {
+            const day = getDayData();
+            const item = day.foodLogs.find(f => f.id === logId);
+            if (!item) return;
+            openInputModal('editFoodLog', item);
+        }
+
+        function removeFoodLog(idx) {
+            const day = getDayData();
+            day.foodLogs.splice(idx, 1);
+            saveState();
+            renderAll();
+        }
+
+        function renderNutritionTab(day) {
+            renderActiveBatchBanner();
+            renderSchiaccciataPresets();
+            renderEditPresetConfig();
+            renderRecipeBookList();
+            renderIngredientDbList();
+            renderShoppingList();
+
+            const logList = document.getElementById('dailyFoodLogList');
+            logList.innerHTML = '';
+            if (day.foodLogs.length === 0) {
+                logList.innerHTML = `<p class="text-xs text-slate-500 py-2 text-center">Nincs étel a mai naplóban. Válaszd ki fentről vagy az alapanyagokból!</p>`;
+                return;
+            }
+
+            day.foodLogs.forEach((log, idx) => {
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-3 rounded-2xl border transition ${log.eaten ? 'bg-emerald-950/25 border-emerald-500/40' : 'bg-slate-950/90 border-slate-800'}`;
+                item.innerHTML = `
+                    <div class="min-w-0 pr-2 flex-1 cursor-pointer" onclick="toggleFoodLogEaten('${log.id}')">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold ${log.eaten ? 'line-through text-slate-400' : 'text-white'}">${escapeHtml(log.name)}</span>
+                            ${log.eatenTime ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Evés: ${log.eatenTime}</span>` : ''}
+                        </div>
+                        <div class="text-[11px] text-slate-400 mt-0.5"><b>${Math.round(log.kcal)} kcal</b> • <span class="text-emerald-400 font-semibold">${log.pro.toFixed(1)}g F</span> • ${log.carb.toFixed(1)}g CH • ${log.fat.toFixed(1)}g Zs</div>
+                    </div>
+                    <div class="flex items-center gap-1 flex-shrink-0">
+                        <button onclick="editFoodLogItem('${log.id}')" class="p-1.5 text-slate-400 hover:text-white" title="Módosítás">✏️</button>
+                        <button onclick="removeFoodLog(${idx})" class="p-1.5 text-slate-500 hover:text-rose-400">✕</button>
+                        <div onclick="toggleFoodLogEaten('${log.id}')" class="w-6 h-6 rounded-xl flex items-center justify-center border ml-1 cursor-pointer ${log.eaten ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold text-xs' : 'border-slate-700'}">${log.eaten ? '✓' : ''}</div>
+                    </div>
+                `;
+                logList.appendChild(item);
+            });
+        }
+
+        function renderSmartNutritionSuggestions(totals, prof) {
+            const body = document.getElementById('smartSuggestionBody');
+            const pill = document.getElementById('smartStatusPill');
+            const remKcal = prof.kcal - totals.kcal;
+            const remPro = prof.pro - totals.pro;
+
+            if (remKcal > 350 && remPro > 25) {
+                pill.textContent = 'Ajánlás';
+                pill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300';
+                body.innerHTML = `Még hiányzik <b>${Math.round(remKcal)} kcal</b> és <b>${Math.round(remPro)}g fehérje</b> a mai célból. Javaslat: Fogyassz el egy <b>nagyobb Schiacciata szendvicset</b> vagy egy adag görög joghurtos túrót nasiként!`;
+            } else if (remKcal > 150) {
+                pill.textContent = 'Közel a cél';
+                pill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300';
+                body.innerHTML = `Már csak <b>${Math.round(remKcal)} kcal</b> van hátra. Nasinak egy kis magvas joghurt vagy gyümölcs tökéletesen belefér.`;
+            } else {
+                pill.textContent = 'Cél elérve';
+                pill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300';
+                body.innerHTML = `🎉 Kiváló! A mai makró- és energiaellátottságod tökéletes a beállított aktivitáshoz.`;
+            }
+        }
+
+        // ==================== AI CHEF & COOKING RECIPE ====================
+        function generateAIFamilyRecipe() {
+            const box = document.getElementById('aiMealSuggestionBox');
+            box.classList.remove('hidden');
+            const q = document.getElementById('aiRecipePromptInput').value.trim() || 'Tejfölös zöldborsófőzelék csirkemellel';
+            const days = Number(document.getElementById('aiRecipeDaysSelect').value) || 3;
+            const servings = days * 4;
+            box.innerHTML = `<div class="text-emerald-300 font-bold">⏳ AI Séf összeállítja a receptet és a bevásárlólistát (${days} napra, ${servings} adagra)...</div>`;
+
+            const scale = days; // 1 day = 4 servings base
+            lastGeneratedAIRecipe = {
+                name: `🍲 ${q.charAt(0).toUpperCase() + q.slice(1)} (${days} napos családi adag)`,
+                category: 'lunch',
+                servings: servings,
+                featured: false,
+                ingredients: [
+                    { ingId: 'ing_chicken', grams: 500 * scale },
+                    { ingId: 'ing_peas', grams: 350 * scale },
+                    { ingId: 'ing_cream', grams: 150 * scale },
+                    { ingId: 'ing_rice', grams: 280 * scale }
+                ],
+                instructions: `1. Előkészület: A húst (${500 * scale}g) felkockázzuk, a zöldségeket megtisztítjuk.\n2. Pörkölés: Kevés zsiradékon megpirítjuk a húst, sózzuk, borsozzuk, fűszerezzük.\n3. Főzés: Hozzáadjuk a fő zöldséget (${350 * scale}g), felöntjük alaplével és puhára főzzük.\n4. Befejezés: Tejszínes/tejfölös (${150 * scale}g) habarással krémesítjük.`
+            };
+
+            const m = computeRecipeMacrosPerServing(lastGeneratedAIRecipe);
+
+            setTimeout(() => {
+                box.innerHTML = `
+                    <div class="font-extrabold text-amber-300 text-xs">${escapeHtml(lastGeneratedAIRecipe.name)}</div>
+                    <div class="text-[11px] text-emerald-300 font-semibold">1 adag (${servings} adagból): ${m.kcal} kcal • ${m.pro}g fehérje • ${m.carb}g CH • ${m.fat}g Zs</div>
+                    <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-[11px] space-y-1">
+                        <div class="font-bold text-slate-300 uppercase text-[10px]">Szükséges alapanyagok (${servings} adaghoz):</div>
+                        <div>• ${escapeHtml(formatRecipeIngredientsSummary(lastGeneratedAIRecipe))}</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button onclick="saveGeneratedAIRecipeToBook()" class="py-2 px-2 rounded-xl bg-amber-400 text-slate-950 font-extrabold text-xs hover:bg-amber-300 transition">
+                            📖 Mentés a Receptkönyvbe
+                        </button>
+                        <button onclick="logItemToDayJournal('${escapeHtml(lastGeneratedAIRecipe.name)}', 100, ${m.kcal}, ${m.pro}, ${m.carb}, ${m.fat})" class="py-2 px-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs hover:bg-emerald-400 transition">
+                            + 1 Adag Naplóba
+                        </button>
+                    </div>
+                `;
+            }, 350);
+        }
+
+        function generateDetailedCookingGuide() {
+            const box = document.getElementById('aiMealSuggestionBox');
+            box.classList.remove('hidden');
+            const q = document.getElementById('aiRecipePromptInput').value.trim() || 'Házias Tárkonyos Raguleves / Főzelék';
+            const days = Number(document.getElementById('aiRecipeDaysSelect').value) || 2;
+            const servings = days * 4;
+
+            lastGeneratedAIRecipe = {
+                name: `🍲 ${q.charAt(0).toUpperCase() + q.slice(1)}`,
+                category: 'lunch',
+                servings: servings,
+                featured: false,
+                ingredients: [
+                    { ingId: 'ing_chicken', grams: 600 * days },
+                    { ingId: 'ing_peas', grams: 400 * days },
+                    { ingId: 'ing_cream', grams: 200 * days },
+                    { ingId: 'ing_rice', grams: 300 * days }
+                ],
+                instructions: `1. Előkészület & Alapok: Vágd egyforma kockákra a húst (${600 * days}g). A hagymát pirítsd üvegesre.\n2. Fűszerezés & Pörkölés: Pirítsd le a húst nagy lángon, majd fűszerezd sóval, borssal, zöldfűszerekkel.\n3. Főzés: Add hozzá a zöldségeket (${400 * days}g), öntsd fel alaplével és fedő alatt párold 35 percig.\n4. Krémesítés: Keverd simára a tejszínt/tejfölt (${200 * days}g) egy merőkanál forró lével (hőkiegyenlítés), majd sűrítsd be vele az ételt.`
+            };
+
+            const m = computeRecipeMacrosPerServing(lastGeneratedAIRecipe);
+
+            box.innerHTML = `
+                <div class="font-extrabold text-amber-300 text-xs">📖 Részletes Főzési Recept: ${escapeHtml(lastGeneratedAIRecipe.name)} (${servings} adag)</div>
+                <div class="text-[11px] text-emerald-300 font-bold">1 adag: ${m.kcal} kcal • ${m.pro}g F • ${m.carb}g CH • ${m.fat}g Zs</div>
+                <div class="text-[11px] text-slate-200 space-y-1.5 leading-relaxed bg-slate-900 p-3 rounded-2xl border border-slate-800 whitespace-pre-line">${escapeHtml(lastGeneratedAIRecipe.instructions)}</div>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button onclick="saveGeneratedAIRecipeToBook()" class="py-2 px-2 rounded-xl bg-amber-400 text-slate-950 font-extrabold text-xs hover:bg-amber-300 transition">
+                        📖 Mentés a Receptkönyvbe
+                    </button>
+                    <button onclick="logItemToDayJournal('${escapeHtml(lastGeneratedAIRecipe.name)}', 100, ${m.kcal}, ${m.pro}, ${m.carb}, ${m.fat})" class="py-2 px-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs hover:bg-emerald-400 transition">
+                        + 1 Adag Naplóba
+                    </button>
+                </div>
+            `;
+        }
+
+        function saveGeneratedAIRecipeToBook() {
+            if (!lastGeneratedAIRecipe) return;
+            const newId = 'rb_ai_' + Date.now();
+            const copy = { ...JSON.parse(JSON.stringify(lastGeneratedAIRecipe)), id: newId };
+            state.recipeBook.unshift(copy);
+            saveState();
+            renderAll();
+            showToast('AI Recept elmentve a Receptkönyvbe! 📖', '✨');
+        }
+
+        function generateAIMealPlan() { generateAIFamilyRecipe(); }
+
+        // ==================== MICROS, LEARNING, ANALYTICS ====================
+        function toggleNewSuppModal() { document.getElementById('newSuppBox').classList.toggle('hidden'); }
+        function saveNewSupplement() {
+            const name = document.getElementById('suppName').value.trim();
+            if (!name) return;
+            state.supplements.push({ id: 's_' + Date.now(), name, dose: '1 adag', timing: document.getElementById('suppTiming').value, stock: Number(document.getElementById('suppStock').value) || 30, micros: { mg: 100 } });
+            saveState();
+            toggleNewSuppModal();
+            renderAll();
+        }
+        function toggleSupplementTaken(id) {
+            const day = getDayData();
+            day.suppsTaken[id] = !day.suppsTaken[id];
+            saveState();
+            renderAll();
+        }
+        function renderMicrosTab(day, totals) {
+            const list = document.getElementById('supplementsList');
+            list.innerHTML = '';
+            state.supplements.forEach(s => {
+                const taken = !!day.suppsTaken[s.id];
+                const card = document.createElement('div');
+                card.onclick = () => toggleSupplementTaken(s.id);
+                card.className = `p-3.5 rounded-2xl border transition cursor-pointer flex items-center justify-between ${taken ? 'bg-cyan-950/30 border-cyan-500/50' : 'bg-slate-950/90 border-slate-800'}`;
+                card.innerHTML = `<div class="text-xs font-bold text-white">${escapeHtml(s.name)} (${s.timing})</div><div class="w-6 h-6 rounded-xl flex items-center justify-center border ${taken ? 'bg-cyan-400 border-cyan-300 text-slate-950 font-bold text-xs' : 'border-slate-700'}">${taken ? '✓' : ''}</div>`;
+                list.appendChild(card);
+            });
+            const reportBox = document.getElementById('micronutrientReportBars');
+            reportBox.innerHTML = `<div class="text-xs text-slate-400">Mikrotápanyagok összesítve rendben.</div>`;
+        }
+
+        function renderLearningTab(day) {
+            const tracksBox = document.getElementById('learningTracksList');
+            const select = document.getElementById('learnTrackSelect');
+            tracksBox.innerHTML = ''; select.innerHTML = '';
+            state.learningTracks.forEach(t => {
+                const div = document.createElement('div');
+                div.className = 'bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs text-white';
+                div.innerHTML = `<b>${escapeHtml(t.title)}</b> (${t.loggedMinutes} perc)`;
+                tracksBox.appendChild(div);
+                const opt = document.createElement('option'); opt.value = t.id; opt.textContent = t.title; select.appendChild(opt);
+            });
+        }
+        function logLearningSession() {
+            const trackId = document.getElementById('learnTrackSelect').value;
+            const mins = Number(document.getElementById('learnMinutes').value) || 30;
+            const topic = document.getElementById('learnTopic').value.trim() || 'Gyakorlás';
+            const track = state.learningTracks.find(t => t.id === trackId);
+            if (track) track.loggedMinutes += mins;
+            getDayData().learningLogs.push({ trackId, minutes: mins, topic, score: 5 });
+            saveState(); renderAll(); showToast('Tanulás rögzítve!', '🎓');
+        }
+
+        function renderWeeklyMatrix() {
+            const tbody = document.getElementById('weeklyMatrixBody');
+            tbody.innerHTML = '';
+            for (let i = 0; i < 7; i++) {
+                const ds = getOffsetDateStr(i);
+                const day = getDayData(ds);
+                const totals = calculateDailyTotals(ds);
+                const tr = document.createElement('tr');
+                tr.onclick = () => { state.activeDate = ds; saveState(); renderAll(); };
+                tr.className = `cursor-pointer hover:bg-slate-800/40 transition ${ds === state.activeDate ? 'bg-emerald-500/10 font-bold' : ''}`;
+                tr.innerHTML = `<td class="py-2 text-slate-300">${ds.slice(5)}</td><td class="py-2">${Math.round(totals.kcal)} / <span class="text-emerald-400">${Math.round(totals.pro)}g</span></td><td class="py-2 text-cyan-300">${day.water}/8</td><td class="py-2">-</td><td class="py-2">-</td><td class="py-2 text-amber-300">⚡${day.checkin.energy}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+        function runLifeOptimizationAnalysis() {
+            document.getElementById('optimizationReportBox').innerHTML = `📊 A makrók, fehérje és fókusz adatok alapján a mai napod optimális ütemben halad!`;
+        }
+
+        function calculateDailyTotals(dateStr) {
+            const day = getDayData(dateStr);
+            const totals = {
+                kcal: 0, pro: 0, carb: 0, fat: 0,
+                eatenKcal: 0, eatenPro: 0,
+                microsFromFood: { vitD: 0, mg: 0, vitC: 0, zn: 0, omega: 0, ca: 0, fe: 0 },
+                microsFromSupps: { vitD: 0, mg: 0, vitC: 0, zn: 0, omega: 0, ca: 0, fe: 0 }
+            };
+
+            (day.foodLogs || []).forEach(item => {
+                const k = Number(item.kcal) || 0;
+                const p = Number(item.pro) || 0;
+                const c = Number(item.carb) || 0;
+                const f = Number(item.fat) || 0;
+                totals.kcal += k;
+                totals.pro += p;
+                totals.carb += c;
+                totals.fat += f;
+                if (item.eaten) {
+                    totals.eatenKcal += k;
+                    totals.eatenPro += p;
+                }
+                if (item.micros) {
+                    Object.keys(totals.microsFromFood).forEach(mk => {
+                        totals.microsFromFood[mk] += (Number(item.micros[mk]) || 0);
+                    });
+                }
+            });
+
+            (state.supplements || []).forEach(s => {
+                if (day.suppsTaken && day.suppsTaken[s.id]) {
+                    Object.keys(totals.microsFromSupps).forEach(mk => {
+                        totals.microsFromSupps[mk] += (Number(s.micros?.[mk]) || 0);
+                    });
+                }
+            });
+
+            return totals;
+        }
+
+        let currentModalAction = null;
+
+        function openInputModal(type, payload = null) {
+            const modal = document.getElementById('customInputModal');
+            const title = document.getElementById('inputModalTitle');
+            const fields = document.getElementById('inputModalFields');
+            const confirmBtn = document.getElementById('inputModalConfirmBtn');
+            currentModalAction = null;
+
+            if (type === 'editIngredientDb') {
+                title.textContent = payload ? `🥕 Alapanyag szerkesztése: ${payload.name}` : '🥕 Új Alapanyag (100g-ra)';
+                fields.innerHTML = `
+                    <input type="text" id="modIngName" value="${payload ? escapeHtml(payload.name) : ''}" placeholder="Alapanyag neve (pl. Skyr, Pulykamell)" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2 text-xs font-bold text-white" />
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="text-[10px] text-slate-400">Kalória (100g)</label><input type="number" id="modIngKcal" value="${payload ? payload.kcal : 100}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-bold" /></div>
+                        <div><label class="text-[10px] text-emerald-400">Fehérje (g / 100g)</label><input type="number" step="0.1" id="modIngPro" value="${payload ? payload.pro : 10}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-bold" /></div>
+                        <div><label class="text-[10px] text-cyan-400">Szénhidrát (g / 100g)</label><input type="number" step="0.1" id="modIngCarb" value="${payload ? payload.carb : 10}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-bold" /></div>
+                        <div><label class="text-[10px] text-amber-400">Zsír (g / 100g)</label><input type="number" step="0.1" id="modIngFat" value="${payload ? payload.fat : 5}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-bold" /></div>
+                    </div>
+                `;
+                currentModalAction = () => {
+                    const name = document.getElementById('modIngName').value.trim();
+                    if (!name) return;
+                    const kcal = Number(document.getElementById('modIngKcal').value) || 0;
+                    const pro = Number(document.getElementById('modIngPro').value) || 0;
+                    const carb = Number(document.getElementById('modIngCarb').value) || 0;
+                    const fat = Number(document.getElementById('modIngFat').value) || 0;
+                    if (payload) {
+                        payload.name = name; payload.kcal = kcal; payload.pro = pro; payload.carb = carb; payload.fat = fat;
+                    } else {
+                        state.ingredientsDb.unshift({ id: 'ing_' + Date.now(), name, kcal, pro, carb, fat });
+                    }
+                    saveState(); renderAll(); showToast('Alapanyag mentve, receptek frissítve!', '🥕');
+                };
+            } else if (type === 'habitNote' && payload) {
+                const day = getDayData();
+                const currentNote = (day.habitNotes && day.habitNotes[payload.id]) ? day.habitNotes[payload.id] : '';
+                title.textContent = `📝 Napi jegyzet: ${payload.name}`;
+                fields.innerHTML = `
+                    <textarea id="modHabitNoteText" rows="3" placeholder="Pl. Milyen könyvet olvastál ma, mi volt a lényege?" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-3 text-xs text-white">${escapeHtml(currentNote)}</textarea>
+                `;
+                currentModalAction = () => {
+                    const val = document.getElementById('modHabitNoteText').value.trim();
+                    day.habitNotes[payload.id] = val;
+                    saveState(); renderAll(); showToast('Napi szokás-jegyzet elmentve!', '📝');
+                };
+            } else if (type === 'logEatenTime' && payload) {
+                title.textContent = `Mikor etted meg? (${payload.name})`;
+                fields.innerHTML = `
+                    <input type="text" id="modEatenTimeInput" value="12:30" placeholder="Pl. 13:15" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-white text-center text-lg" />
+                    <p class="text-[11px] text-slate-400">Az időpont rögzítésével a rendszer naplózza a makrók eloszlását a nap folyamán.</p>
+                `;
+                currentModalAction = () => {
+                    const timeStr = document.getElementById('modEatenTimeInput').value.trim() || '12:00';
+                    payload.eaten = true;
+                    payload.eatenTime = timeStr;
+                    saveState(); renderAll(); showToast('Étkezés rögzítve az eloszlási naplóban!', '✅');
+                };
+            } else if (type === 'editFoodLog' && payload) {
+                title.textContent = 'Étkezési napló módosítása';
+                fields.innerHTML = `
+                    <input type="text" id="modLogName" value="${escapeHtml(payload.name)}" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-white" />
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="text-[10px] text-slate-400">Kcal</label><input type="number" id="modLogKcal" value="${Math.round(payload.kcal)}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" /></div>
+                        <div><label class="text-[10px] text-emerald-400">Fehérje (g)</label><input type="number" id="modLogPro" value="${payload.pro}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" /></div>
+                    </div>
+                `;
+                currentModalAction = () => {
+                    payload.name = document.getElementById('modLogName').value.trim() || payload.name;
+                    payload.kcal = Number(document.getElementById('modLogKcal').value) || payload.kcal;
+                    payload.pro = Number(document.getElementById('modLogPro').value) || payload.pro;
+                    saveState(); renderAll(); showToast('Napló bejegyzés frissítve!', '✏️');
+                };
+            } else if (type === 'habit') {
+                title.textContent = 'Új szokás';
+                fields.innerHTML = `<input type="text" id="modHabName" placeholder="Név" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-white" />`;
+                currentModalAction = () => {
+                    const name = document.getElementById('modHabName').value.trim();
+                    if (name) { state.habits.push({ id: 'h_' + Date.now(), name, icon: '✨' }); saveState(); renderAll(); }
+                };
+            } else if (type === 'quickDogWalk') {
+                title.textContent = '🐕 Kutyaséta';
+                fields.innerHTML = `<input type="number" id="modDogMins" value="45" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-white text-center" />`;
+                currentModalAction = () => {
+                    const mins = Number(document.getElementById('modDogMins').value) || 40;
+                    getDayData().workouts.push({ id: 'w_' + Date.now(), type: 'dog', title: '🐕 Kutyaséta', duration: mins, done: true });
+                    saveState(); renderAll(); showToast('Kutyaséta rögzítve!', '🐕');
+                };
+            } else if (type === 'quickWalk') {
+                title.textContent = '🚶 Séta';
+                fields.innerHTML = `<input type="number" id="modWalkMins" value="30" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-white text-center" />`;
+                currentModalAction = () => {
+                    const mins = Number(document.getElementById('modWalkMins').value) || 30;
+                    getDayData().workouts.push({ id: 'w_' + Date.now(), type: 'walk', title: '🚶 Séta', duration: mins, done: true });
+                    saveState(); renderAll(); showToast('Séta rögzítve!', '🚶');
+                };
+            } else if (type === 'customWorkout') {
+                title.textContent = '➕ Egyéni mozgás';
+                fields.innerHTML = `<input type="text" id="modCWTitle" placeholder="Név" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-white" /><input type="number" id="modCWMins" value="40" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-white text-center mt-2" />`;
+                currentModalAction = () => {
+                    const t = document.getElementById('modCWTitle').value.trim();
+                    const mins = Number(document.getElementById('modCWMins').value) || 30;
+                    if (t) { getDayData().workouts.push({ id: 'w_' + Date.now(), type: 'strength', title: t, duration: mins, done: false }); saveState(); renderAll(); }
+                };
+            } else if (type === 'customFoodLog') {
+                title.textContent = 'Új egyedi étel naplózása';
+                fields.innerHTML = `
+                    <input type="text" id="modCfName" placeholder="Étel neve" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-white" />
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="modCfKcal" placeholder="Kcal" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" />
+                        <input type="number" id="modCfPro" placeholder="Fehérje (g)" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" />
+                    </div>
+                `;
+                currentModalAction = () => {
+                    const name = document.getElementById('modCfName').value.trim();
+                    const kcal = Number(document.getElementById('modCfKcal').value) || 0;
+                    const pro = Number(document.getElementById('modCfPro').value) || 0;
+                    if (name) { logItemToDayJournal(name, 100, kcal, pro, 0, 0); }
+                };
+            } else if (type === 'learning') {
+                title.textContent = 'Új tanulási terület';
+                fields.innerHTML = `<input type="text" id="modLTitle" placeholder="Cím" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs text-white" />`;
+                currentModalAction = () => {
+                    const titleVal = document.getElementById('modLTitle').value.trim();
+                    if (titleVal) { state.learningTracks.push({ id: 'l_' + Date.now(), title: titleVal, category: 'Tech', targetMinutes: 600, loggedMinutes: 0 }); saveState(); renderAll(); }
+                };
+            }
+
+            confirmBtn.onclick = () => { if (currentModalAction) currentModalAction(); closeInputModal(); };
+            modal.classList.remove('hidden');
+        }
+
+        function closeInputModal() { document.getElementById('customInputModal').classList.add('hidden'); currentModalAction = null; }
+
+        function renderActiveBatchBanner() {
+            const banner = document.getElementById('activeBatchBanner');
+            const badge = document.getElementById('batchDaysBadge');
+            const content = document.getElementById('activeBatchContent');
+            if (!banner) return;
+            const batch = state.activeBatchMeal;
+            if (!batch || state.activeDate < batch.startDate || state.activeDate > batch.validUntil) {
+                banner.classList.add('hidden');
+                return;
+            }
+            banner.classList.remove('hidden');
+            badge.textContent = `Aktív többnapos ebéd`;
+            content.innerHTML = `
+                <div class="text-xs font-bold text-white">${escapeHtml(batch.name)} (${batch.kcal} kcal, ${batch.pro}g F)</div>
+                <button onclick="logItemToDayJournal('${escapeHtml(batch.name)}', 100, ${batch.kcal}, ${batch.pro}, ${batch.carb}, ${batch.fat})" class="w-full py-2 rounded-xl bg-amber-400 text-slate-950 font-extrabold text-xs">🍲 Ebéd adag naplózása mára</button>
+            `;
+        }
+
+        function renderShoppingList() {
+            const container = document.getElementById('shoppingListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            state.shoppingList.forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.onclick = () => { item.done = !item.done; saveState(); renderShoppingList(); };
+                row.className = `flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer ${item.done ? 'bg-slate-950/50 text-slate-500 line-through' : 'bg-slate-950 text-slate-200'}`;
+                row.innerHTML = `<span>${escapeHtml(item.text)}</span><span>${item.done ? '✓' : ''}</span>`;
+                container.appendChild(row);
+            });
+        }
+        function addManualShoppingItem() {
+            const inp = document.getElementById('newShopItemInput');
+            if (!inp.value.trim()) return;
+            state.shoppingList.unshift({ id: 'sh_' + Date.now(), text: inp.value.trim(), done: false });
+            inp.value = ''; saveState(); renderShoppingList();
+        }
+        function clearCheckedShoppingItems() {
+            state.shoppingList = state.shoppingList.filter(i => !i.done);
+            saveState(); renderShoppingList();
+        }
+
+        function openSettingsModal() { document.getElementById('settingsModal').classList.remove('hidden'); }
+        function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
+        function saveSettingsAndClose() { closeSettingsModal(); }
+        function exportDataJson() {}
+        function importDataJson(e) {}
+
+        let toastTimer = null;
+        function showToast(msg, icon = '✨') {
+            const banner = document.getElementById('toastBanner');
+            document.getElementById('toastText').textContent = msg;
+            document.getElementById('toastIcon').textContent = icon;
+            banner.classList.remove('opacity-0', '-translate-y-2');
+            banner.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => banner.classList.add('opacity-0', '-translate-y-2'), 2000);
+        }
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        document.getElementById('activeDateInput').addEventListener('change', (e) => {
+            if (e.target.value) { state.activeDate = e.target.value; saveState(); renderAll(); }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => { renderAll(); });
+    </script>
+</body>
+</html>
